@@ -136,17 +136,17 @@ function Index() {
     setTimersStarted(false);
   };
 
-  const handleTimerComplete = useCallback((index: number) => {
-    setTimers((prev) => {
-      const isLast = index >= prev.length - 1;
-      return prev.map((timer, idx) => ({
-        ...timer,
-        isExpired: idx === index ? true : timer.isExpired,
-        isActive: !isLast && idx === index + 1,
-      }));
-    });
-    setTimers((prev) => {
-      if (index < prev.length - 1) {
+  const handleTimerComplete = useCallback(
+    (index: number) => {
+      const isLast = index >= timers.length - 1;
+      setTimers((prev) =>
+        prev.map((timer, idx) => ({
+          ...timer,
+          isExpired: idx === index ? true : timer.isExpired,
+          isActive: !isLast && idx === index + 1,
+        })),
+      );
+      if (!isLast) {
         setActiveTimerIndex(index + 1);
       } else {
         setActiveTimerIndex(-1);
@@ -156,11 +156,13 @@ function Index() {
           text: "Great work — your practice session is finished.",
           icon: "success",
           confirmButtonText: "Nice",
+          confirmButtonColor: "#b4784f",
         });
       }
-      return prev;
-    });
-  }, []);
+    },
+    [timers.length],
+  );
+
 
   const deleteTimer = (index: number) => {
     setTimers((prev) => prev.filter((_, idx) => idx !== index));
