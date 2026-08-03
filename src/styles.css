@@ -145,3 +145,8 @@
     color: var(--color-foreground);
   }
 }
+
+@theme inline {
+  --shadow-soft: var(--shadow-soft);
+  --background-image-gradient-warm: var(--gradient-warm);
+}
