@@ -111,7 +111,9 @@ function Index() {
     setTimers((prev) => [
       ...prev,
       {
+        id: makeId(),
         title: newTimerTitle.trim(),
+
         duration,
         isActive: false,
         isExpired: false,
