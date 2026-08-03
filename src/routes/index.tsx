@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,6 +37,7 @@ const STORAGE_KEYS = {
 };
 
 interface TimerBlock {
+  id: string;
   title: string;
   duration: number;
   isActive: boolean;
@@ -43,6 +46,10 @@ interface TimerBlock {
   tempMinutes: number;
   tempSeconds: number;
 }
+
+const makeId = () =>
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -76,11 +83,13 @@ function Index() {
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
         ...t,
+        id: t.id ?? makeId(),
         isActive: false,
         isExpired: false,
         editing: false,
       })),
     );
+
     setHydrated(true);
   }, []);
 
@@ -102,7 +111,9 @@ function Index() {
     setTimers((prev) => [
       ...prev,
       {
+        id: makeId(),
         title: newTimerTitle.trim(),
+
         duration,
         isActive: false,
         isExpired: false,
@@ -131,24 +142,18 @@ function Index() {
   };
 
   const resetTimers = () => {
-    setTimers([]);
     setActiveTimerIndex(-1);
     setTimersStarted(false);
+    setTimers((prev) =>
+      prev.map((t) => ({ ...t, isActive: false, isExpired: false, editing: false })),
+    );
   };
 
-  const handleTimerComplete = useCallback(
-    (index: number) => {
-      const isLast = index >= timers.length - 1;
-      setTimers((prev) =>
-        prev.map((timer, idx) => ({
-          ...timer,
-          isExpired: idx === index ? true : timer.isExpired,
-          isActive: !isLast && idx === index + 1,
-        })),
-      );
-      if (!isLast) {
-        setActiveTimerIndex(index + 1);
-      } else {
+  const handleTimerComplete = useCallback((completedIndex: number) => {
+    setTimers((prev) => {
+      const nextIndex = completedIndex + 1;
+      const isFinished = nextIndex >= prev.length;
+      if (isFinished) {
         setActiveTimerIndex(-1);
         setTimersStarted(false);
         Swal.fire({
@@ -158,10 +163,17 @@ function Index() {
           confirmButtonText: "Nice",
           confirmButtonColor: "#b4784f",
         });
+      } else {
+        setActiveTimerIndex(nextIndex);
       }
-    },
-    [timers.length],
-  );
+      return prev.map((timer, idx) => ({
+        ...timer,
+        isActive: idx === nextIndex,
+        isExpired: idx <= completedIndex ? true : timer.isExpired,
+      }));
+    });
+  }, []);
+
 
 
   const deleteTimer = (index: number) => {
@@ -355,15 +367,30 @@ function Index() {
             </p>
           )}
 
-          {timers.map((timer, index) => (
-            <div
-              key={index}
-              className={`rounded-3xl border bg-card p-5 transition-all ${
-                activeTimerIndex === index
-                  ? "border-primary shadow-soft ring-2 ring-primary/25"
-                  : "border-border"
-              } ${timer.isExpired ? "opacity-60" : ""}`}
-            >
+          <AnimatePresence initial={false}>
+            {timers.map((timer, index) => (
+              <motion.div
+                key={timer.id}
+                layout
+                initial={{ opacity: 0, y: 15 }}
+                animate={{
+                  opacity: timer.isExpired ? 0.6 : 1,
+                  y: 0,
+                  scale: activeTimerIndex === index ? 1.015 : 1,
+                  boxShadow:
+                    activeTimerIndex === index
+                      ? "0 22px 50px -22px oklch(0.62 0.11 45 / 0.55)"
+                      : "0 0px 0px 0px oklch(0.62 0.11 45 / 0)",
+                }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className={`rounded-3xl border bg-card p-5 ${
+                  activeTimerIndex === index
+                    ? "border-primary ring-2 ring-primary/25"
+                    : "border-border"
+                }`}
+              >
+
               {timer.editing ? (
                 <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
                   <Input
@@ -451,8 +478,10 @@ function Index() {
                   </div>
                 </div>
               )}
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
         </section>
       </div>
     </main>
