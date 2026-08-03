@@ -142,24 +142,18 @@ function Index() {
   };
 
   const resetTimers = () => {
-    setTimers([]);
     setActiveTimerIndex(-1);
     setTimersStarted(false);
+    setTimers((prev) =>
+      prev.map((t) => ({ ...t, isActive: false, isExpired: false, editing: false })),
+    );
   };
 
-  const handleTimerComplete = useCallback(
-    (index: number) => {
-      const isLast = index >= timers.length - 1;
-      setTimers((prev) =>
-        prev.map((timer, idx) => ({
-          ...timer,
-          isExpired: idx === index ? true : timer.isExpired,
-          isActive: !isLast && idx === index + 1,
-        })),
-      );
-      if (!isLast) {
-        setActiveTimerIndex(index + 1);
-      } else {
+  const handleTimerComplete = useCallback((completedIndex: number) => {
+    setTimers((prev) => {
+      const nextIndex = completedIndex + 1;
+      const isFinished = nextIndex >= prev.length;
+      if (isFinished) {
         setActiveTimerIndex(-1);
         setTimersStarted(false);
         Swal.fire({
@@ -169,10 +163,17 @@ function Index() {
           confirmButtonText: "Nice",
           confirmButtonColor: "#b4784f",
         });
+      } else {
+        setActiveTimerIndex(nextIndex);
       }
-    },
-    [timers.length],
-  );
+      return prev.map((timer, idx) => ({
+        ...timer,
+        isActive: idx === nextIndex,
+        isExpired: idx <= completedIndex ? true : timer.isExpired,
+      }));
+    });
+  }, []);
+
 
 
   const deleteTimer = (index: number) => {
