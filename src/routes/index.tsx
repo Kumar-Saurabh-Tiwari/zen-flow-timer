@@ -83,11 +83,13 @@ function Index() {
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
         ...t,
+        id: t.id ?? makeId(),
         isActive: false,
         isExpired: false,
         editing: false,
       })),
     );
+
     setHydrated(true);
   }, []);
 
