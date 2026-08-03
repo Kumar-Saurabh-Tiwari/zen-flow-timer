@@ -478,8 +478,10 @@ function Index() {
                   </div>
                 </div>
               )}
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
         </section>
       </div>
     </main>
