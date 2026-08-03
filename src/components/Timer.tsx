@@ -26,17 +26,14 @@ export default function Timer({ title, duration, isActive, onComplete }: TimerPr
     if (!isActive) return;
     setRemainingTime(duration);
     const id = setInterval(() => {
-      setRemainingTime((prev) => {
-        if (prev <= 1) {
-          clearInterval(id);
-          onCompleteRef.current();
-          return 0;
-        }
-        return prev - 1;
-      });
+      setRemainingTime((prev) => Math.max(prev - 1, 0));
     }, 1000);
     return () => clearInterval(id);
   }, [isActive, duration]);
+
+  useEffect(() => {
+    if (isActive && remainingTime === 0) onCompleteRef.current();
+  }, [isActive, remainingTime]);
 
   const progress = duration > 0 ? ((duration - remainingTime) / duration) * 100 : 0;
 
