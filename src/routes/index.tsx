@@ -37,6 +37,7 @@ const STORAGE_KEYS = {
 };
 
 interface TimerBlock {
+  id: string;
   title: string;
   duration: number;
   isActive: boolean;
@@ -45,6 +46,10 @@ interface TimerBlock {
   tempMinutes: number;
   tempSeconds: number;
 }
+
+const makeId = () =>
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
