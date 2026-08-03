@@ -201,7 +201,7 @@ function Index() {
       const nextIndex = index + direction;
       if (nextIndex < 0 || nextIndex >= prev.length) return prev;
       const copy = [...prev];
-      [copy[index], copy[nextIndex]] = [copy[nextIndex], copy[index]];
+      [copy[index], copy[nextIndex]] = [copy[nextIndex]!, copy[index]!];
       return copy;
     });
     if (activeTimerIndex === index) setActiveTimerIndex(index + direction);
