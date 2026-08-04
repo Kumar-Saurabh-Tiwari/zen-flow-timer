@@ -485,6 +485,7 @@ function Index() {
               ) : (
                 <div className="flex flex-wrap items-center gap-4">
                   <Timer
+                    id={timer.id}
                     title={timer.title}
                     duration={timer.duration}
                     isActive={timer.isActive}
