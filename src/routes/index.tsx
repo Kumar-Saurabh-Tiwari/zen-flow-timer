@@ -474,6 +474,7 @@ function Index() {
                     title={timer.title}
                     duration={timer.duration}
                     isActive={timer.isActive}
+                    isPaused={isPaused}
                     onComplete={() => handleTimerComplete(index)}
                   />
                   <div className="flex items-center gap-1.5">
