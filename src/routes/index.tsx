@@ -495,6 +495,8 @@ function Index() {
 
         </section>
       </div>
-    </main>
+        </motion.main>
+      )}
+    </AnimatePresence>
   );
 }
