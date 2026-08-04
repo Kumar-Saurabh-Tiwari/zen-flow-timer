@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
+import WelcomeScreen from "@/components/WelcomeScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,9 +77,11 @@ function Index() {
   const [activeTimerIndex, setActiveTimerIndex] = useState(-1);
   const [timersStarted, setTimersStarted] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    setUserName(loadFromStorage(STORAGE_KEYS.name, "there"));
+    const storedName = loadFromStorage(STORAGE_KEYS.name, "");
+    setUserName(storedName || "there");
     setPracticeTitle(loadFromStorage(STORAGE_KEYS.title, "Practice Time"));
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
@@ -89,16 +92,24 @@ function Index() {
         editing: false,
       })),
     );
+    if (!storedName.trim() || storedName.trim() === "there") setShowWelcome(true);
 
     setHydrated(true);
   }, []);
 
+  const completeWelcome = (name: string, goal: string) => {
+    setUserName(name);
+    setPracticeTitle(goal);
+    setShowWelcome(false);
+  };
+
+
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || showWelcome) return;
     window.localStorage.setItem(STORAGE_KEYS.name, JSON.stringify(userName));
     window.localStorage.setItem(STORAGE_KEYS.title, JSON.stringify(practiceTitle));
     window.localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-  }, [hydrated, userName, practiceTitle, timers]);
+  }, [hydrated, showWelcome, userName, practiceTitle, timers]);
 
   const saveProfile = () => {
     setUserName(profileDraft.trim() || "there");
@@ -230,8 +241,20 @@ function Index() {
   const totalDuration = timers.reduce((sum, t) => sum + t.duration, 0);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:py-16">
+    <AnimatePresence mode="wait">
+      {showWelcome ? (
+        <WelcomeScreen key="welcome" onComplete={completeWelcome} />
+      ) : (
+        <motion.main
+          key="app"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:py-16"
+        >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+
         <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm p-8 shadow-soft">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Focused practice, beautifully paced
@@ -292,10 +315,20 @@ function Index() {
                 />
               </div>
             </div>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               <Button onClick={saveProfile}>Save profile</Button>
               <Button variant="ghost" onClick={() => setIsEditingProfile(false)}>
                 Cancel
+              </Button>
+              <Button
+                variant="secondary"
+                className="sm:ml-auto"
+                onClick={() => {
+                  setIsEditingProfile(false);
+                  setShowWelcome(true);
+                }}
+              >
+                Re-run onboarding
               </Button>
             </div>
           </section>
@@ -484,6 +517,8 @@ function Index() {
 
         </section>
       </div>
-    </main>
+        </motion.main>
+      )}
+    </AnimatePresence>
   );
 }
