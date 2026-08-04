@@ -348,10 +348,10 @@ function Index() {
               <Button onClick={addTimer}>Add timer</Button>
               <Button
                 variant="secondary"
-                onClick={startTimers}
-                disabled={timersStarted || timers.length === 0}
+                onClick={timersStarted ? togglePause : startTimers}
+                disabled={timers.length === 0}
               >
-                Start
+                {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
               </Button>
               <Button variant="destructive" onClick={resetTimers}>
                 Reset
