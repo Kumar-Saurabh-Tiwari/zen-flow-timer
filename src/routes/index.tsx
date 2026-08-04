@@ -76,6 +76,7 @@ function Index() {
   const [newTimerSeconds, setNewTimerSeconds] = useState(0);
   const [activeTimerIndex, setActiveTimerIndex] = useState(-1);
   const [timersStarted, setTimersStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -150,11 +151,18 @@ function Index() {
       })),
     );
     setTimersStarted(true);
+    setIsPaused(false);
+  };
+
+  const togglePause = () => {
+    if (!timersStarted) return;
+    setIsPaused((v) => !v);
   };
 
   const resetTimers = () => {
     setActiveTimerIndex(-1);
     setTimersStarted(false);
+    setIsPaused(false);
     setTimers((prev) =>
       prev.map((t) => ({ ...t, isActive: false, isExpired: false, editing: false })),
     );
@@ -167,6 +175,7 @@ function Index() {
       if (isFinished) {
         setActiveTimerIndex(-1);
         setTimersStarted(false);
+        setIsPaused(false);
         Swal.fire({
           title: "Session complete!",
           text: "Great work — your practice session is finished.",
@@ -222,15 +231,20 @@ function Index() {
   };
 
   const moveTimer = (index: number, direction: number) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= timers.length) return;
     setTimers((prev) => {
-      const nextIndex = index + direction;
-      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
       const copy = [...prev];
       [copy[index], copy[nextIndex]] = [copy[nextIndex]!, copy[index]!];
       return copy;
     });
-    if (activeTimerIndex === index) setActiveTimerIndex(index + direction);
-    else if (activeTimerIndex === index + direction) setActiveTimerIndex(index);
+    if (activeTimerIndex === index) {
+      // The running block moved: follow it and pause so the user can review.
+      setActiveTimerIndex(nextIndex);
+      if (timersStarted) setIsPaused(true);
+    } else if (activeTimerIndex === nextIndex) {
+      setActiveTimerIndex(index);
+    }
   };
 
   const profileAvatar = useMemo(
@@ -348,10 +362,10 @@ function Index() {
               <Button onClick={addTimer}>Add timer</Button>
               <Button
                 variant="secondary"
-                onClick={startTimers}
-                disabled={timersStarted || timers.length === 0}
+                onClick={timersStarted ? togglePause : startTimers}
+                disabled={timers.length === 0}
               >
-                Start
+                {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
               </Button>
               <Button variant="destructive" onClick={resetTimers}>
                 Reset
@@ -471,9 +485,11 @@ function Index() {
               ) : (
                 <div className="flex flex-wrap items-center gap-4">
                   <Timer
+                    id={timer.id}
                     title={timer.title}
                     duration={timer.duration}
                     isActive={timer.isActive}
+                    isPaused={isPaused}
                     onComplete={() => handleTimerComplete(index)}
                   />
                   <div className="flex items-center gap-1.5">
