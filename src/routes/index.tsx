@@ -241,8 +241,20 @@ function Index() {
   const totalDuration = timers.reduce((sum, t) => sum + t.duration, 0);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:py-16">
+    <AnimatePresence mode="wait">
+      {showWelcome ? (
+        <WelcomeScreen key="welcome" onComplete={completeWelcome} />
+      ) : (
+        <motion.main
+          key="app"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:py-16"
+        >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+
         <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm p-8 shadow-soft">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Focused practice, beautifully paced
