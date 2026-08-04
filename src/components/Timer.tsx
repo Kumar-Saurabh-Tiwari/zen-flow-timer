@@ -29,10 +29,12 @@ export default function Timer({
   }, [onComplete]);
 
   useEffect(() => {
+    console.log("[dbg] duration effect", title, duration);
     setRemainingTime(duration);
   }, [duration]);
 
   useEffect(() => {
+    console.log("[dbg] active effect", title, isActive, isPaused);
     if (!isActive) {
       setRemainingTime(duration);
       return;
