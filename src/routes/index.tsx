@@ -230,15 +230,20 @@ function Index() {
   };
 
   const moveTimer = (index: number, direction: number) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= timers.length) return;
     setTimers((prev) => {
-      const nextIndex = index + direction;
-      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
       const copy = [...prev];
       [copy[index], copy[nextIndex]] = [copy[nextIndex]!, copy[index]!];
       return copy;
     });
-    if (activeTimerIndex === index) setActiveTimerIndex(index + direction);
-    else if (activeTimerIndex === index + direction) setActiveTimerIndex(index);
+    if (activeTimerIndex === index) {
+      // The running block moved: follow it and pause so the user can review.
+      setActiveTimerIndex(nextIndex);
+      if (timersStarted) setIsPaused(true);
+    } else if (activeTimerIndex === nextIndex) {
+      setActiveTimerIndex(index);
+    }
   };
 
   const profileAvatar = useMemo(
