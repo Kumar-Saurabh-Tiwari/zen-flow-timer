@@ -315,10 +315,20 @@ function Index() {
                 />
               </div>
             </div>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               <Button onClick={saveProfile}>Save profile</Button>
               <Button variant="ghost" onClick={() => setIsEditingProfile(false)}>
                 Cancel
+              </Button>
+              <Button
+                variant="secondary"
+                className="sm:ml-auto"
+                onClick={() => {
+                  setIsEditingProfile(false);
+                  setShowWelcome(true);
+                }}
+              >
+                Re-run onboarding
               </Button>
             </div>
           </section>
