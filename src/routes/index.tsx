@@ -105,11 +105,11 @@ function Index() {
 
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || showWelcome) return;
     window.localStorage.setItem(STORAGE_KEYS.name, JSON.stringify(userName));
     window.localStorage.setItem(STORAGE_KEYS.title, JSON.stringify(practiceTitle));
     window.localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-  }, [hydrated, userName, practiceTitle, timers]);
+  }, [hydrated, showWelcome, userName, practiceTitle, timers]);
 
   const saveProfile = () => {
     setUserName(profileDraft.trim() || "there");
