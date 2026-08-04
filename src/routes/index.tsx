@@ -175,6 +175,7 @@ function Index() {
       if (isFinished) {
         setActiveTimerIndex(-1);
         setTimersStarted(false);
+        setIsPaused(false);
         Swal.fire({
           title: "Session complete!",
           text: "Great work — your practice session is finished.",
