@@ -76,6 +76,7 @@ function Index() {
   const [newTimerSeconds, setNewTimerSeconds] = useState(0);
   const [activeTimerIndex, setActiveTimerIndex] = useState(-1);
   const [timersStarted, setTimersStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 
