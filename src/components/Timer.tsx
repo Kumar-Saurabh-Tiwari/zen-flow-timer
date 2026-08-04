@@ -77,7 +77,7 @@ export default function Timer({
             cy="34"
           />
           <circle
-            stroke="var(--color-primary)"
+            stroke={isPaused ? "var(--color-destructive)" : "var(--color-primary)"}
             strokeWidth="4"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
@@ -87,9 +87,9 @@ export default function Timer({
             cx="34"
             cy="34"
             style={{
-              transition: isActive
-                ? "stroke-dashoffset 1s linear"
-                : "stroke-dashoffset 0.3s ease-out",
+              transition: running
+                ? "stroke-dashoffset 1s linear, stroke 0.3s ease-out"
+                : "stroke-dashoffset 0.3s ease-out, stroke 0.3s ease-out",
               transform: "rotate(-90deg)",
               transformOrigin: "50% 50%",
             }}
@@ -100,20 +100,34 @@ export default function Timer({
         </span>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-medium text-foreground">{title}</p>
+        <div className="flex items-center gap-2">
+          <p className="truncate text-base font-medium text-foreground">{title}</p>
+          {isActive && (
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                isPaused
+                  ? "bg-secondary text-secondary-foreground"
+                  : "bg-primary/15 text-primary"
+              }`}
+            >
+              {isPaused ? "Paused" : "Running"}
+            </span>
+          )}
+        </div>
         <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
           {formatTime(remainingTime)} left of {formatTime(duration)}
         </p>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-primary"
+            className={`h-full rounded-full ${isPaused ? "bg-muted-foreground/60" : "bg-primary"}`}
             style={{
               width: `${progress}%`,
-              transition: isActive ? "width 1s linear" : "width 0.3s ease-out",
+              transition: running ? "width 1s linear" : "width 0.3s ease-out",
             }}
           />
         </div>
       </div>
+
     </div>
   );
 }
