@@ -4,6 +4,7 @@ interface TimerProps {
   title: string;
   duration: number;
   isActive: boolean;
+  isPaused?: boolean;
   onComplete: () => void;
 }
 
@@ -13,7 +14,13 @@ const formatTime = (total: number) => {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 };
 
-export default function Timer({ title, duration, isActive, onComplete }: TimerProps) {
+export default function Timer({
+  title,
+  duration,
+  isActive,
+  isPaused = false,
+  onComplete,
+}: TimerProps) {
   const [remainingTime, setRemainingTime] = useState(duration);
   const onCompleteRef = useRef(onComplete);
 
@@ -30,6 +37,7 @@ export default function Timer({ title, duration, isActive, onComplete }: TimerPr
       setRemainingTime(duration);
       return;
     }
+    if (isPaused) return;
     const interval = setInterval(() => {
       setRemainingTime((prev) => {
         if (prev <= 1) {
@@ -42,7 +50,10 @@ export default function Timer({ title, duration, isActive, onComplete }: TimerPr
     }, 1000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive]);
+  }, [isActive, isPaused]);
+
+  const running = isActive && !isPaused;
+
 
   const progress = useMemo(
     () => (duration > 0 ? ((duration - remainingTime) / duration) * 100 : 0),
