@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 interface TimerProps {
+  id: string;
   title: string;
   duration: number;
   isActive: boolean;
   isPaused?: boolean;
   onComplete: () => void;
 }
+
+/**
+ * Survives reorder-driven remounts so a running block keeps its exact second.
+ */
+const remainingCache = new Map<string, { duration: number; remaining: number }>();
 
 const formatTime = (total: number) => {
   const minutes = Math.floor(total / 60);
@@ -15,13 +21,17 @@ const formatTime = (total: number) => {
 };
 
 export default function Timer({
+  id,
   title,
   duration,
   isActive,
   isPaused = false,
   onComplete,
 }: TimerProps) {
-  const [remainingTime, setRemainingTime] = useState(duration);
+  const [remainingTime, setRemainingTime] = useState(() => {
+    const cached = remainingCache.get(id);
+    return cached && cached.duration === duration ? cached.remaining : duration;
+  });
   const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
@@ -29,14 +39,20 @@ export default function Timer({
   }, [onComplete]);
 
   useEffect(() => {
-    console.log("[dbg] duration effect", title, duration);
+    remainingCache.set(id, { duration, remaining: remainingTime });
+  }, [id, duration, remainingTime]);
+
+  const durationRef = useRef(duration);
+  useEffect(() => {
+    if (durationRef.current === duration) return;
+    durationRef.current = duration;
     setRemainingTime(duration);
   }, [duration]);
 
   useEffect(() => {
-    console.log("[dbg] active effect", title, isActive, isPaused);
     if (!isActive) {
       setRemainingTime(duration);
+      remainingCache.delete(id);
       return;
     }
     if (isPaused) return;
@@ -53,6 +69,7 @@ export default function Timer({
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, isPaused]);
+
 
   const running = isActive && !isPaused;
 
