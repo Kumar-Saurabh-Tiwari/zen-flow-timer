@@ -77,9 +77,11 @@ function Index() {
   const [activeTimerIndex, setActiveTimerIndex] = useState(-1);
   const [timersStarted, setTimersStarted] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    setUserName(loadFromStorage(STORAGE_KEYS.name, "there"));
+    const storedName = loadFromStorage(STORAGE_KEYS.name, "");
+    setUserName(storedName || "there");
     setPracticeTitle(loadFromStorage(STORAGE_KEYS.title, "Practice Time"));
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
@@ -90,9 +92,17 @@ function Index() {
         editing: false,
       })),
     );
+    if (!storedName.trim() || storedName.trim() === "there") setShowWelcome(true);
 
     setHydrated(true);
   }, []);
+
+  const completeWelcome = (name: string, goal: string) => {
+    setUserName(name);
+    setPracticeTitle(goal);
+    setShowWelcome(false);
+  };
+
 
   useEffect(() => {
     if (!hydrated) return;
