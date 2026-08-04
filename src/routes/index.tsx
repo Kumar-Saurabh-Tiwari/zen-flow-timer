@@ -150,11 +150,18 @@ function Index() {
       })),
     );
     setTimersStarted(true);
+    setIsPaused(false);
+  };
+
+  const togglePause = () => {
+    if (!timersStarted) return;
+    setIsPaused((v) => !v);
   };
 
   const resetTimers = () => {
     setActiveTimerIndex(-1);
     setTimersStarted(false);
+    setIsPaused(false);
     setTimers((prev) =>
       prev.map((t) => ({ ...t, isActive: false, isExpired: false, editing: false })),
     );
