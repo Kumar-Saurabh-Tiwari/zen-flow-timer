@@ -162,6 +162,7 @@ function Index() {
     );
     setTimersStarted(true);
     setIsPaused(false);
+    setShowPlanCard(false);
   };
 
   const togglePause = () => {
