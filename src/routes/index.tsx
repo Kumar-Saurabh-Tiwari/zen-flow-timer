@@ -57,6 +57,8 @@ interface TimerBlock {
 const makeId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
+const TEA_BREAK_TITLE = "Tea Break";
+const TEA_BREAK_DURATION = 5 * 60;
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -88,7 +90,7 @@ function Index() {
   const [userTimezone, setUserTimezone] = useState("UTC");
   const [showPlanCard, setShowPlanCard] = useState(true);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
-  const [showTeaBreak, setShowTeaBreak] = useState(false);
+  const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
 
 
   useEffect(() => {
@@ -167,6 +169,37 @@ function Index() {
     setTimersStarted(true);
     setIsPaused(false);
     setShowPlanCard(false);
+  };
+
+  const openTeaBreak = () => {
+    if (timersStarted && !isPaused) {
+      setIsPaused(true);
+    }
+    setIsBreakModalOpen(true);
+  };
+
+  const handleBreakComplete = () => {
+    setIsBreakModalOpen(false);
+
+    if (!timersStarted && timers.length > 0) {
+      setActiveTimerIndex(0);
+      setTimers((prev) =>
+        prev.map((timer, index) => ({
+          ...timer,
+          isActive: index === 0,
+          isExpired: false,
+          editing: false,
+        })),
+      );
+      setTimersStarted(true);
+      setIsPaused(false);
+      setShowPlanCard(false);
+      return;
+    }
+
+    if (timersStarted) {
+      setIsPaused(false);
+    }
   };
 
   const togglePause = () => {
@@ -287,10 +320,10 @@ function Index() {
         <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm px-6 py-4 shadow-soft">
           <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Focused practice, beautifully paced
+              <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Welcome to Red Hat Training
               </p>
-              <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight text-foreground">
+              <h1 className="mt-1 truncate text-3xl font-semibold tracking-tight text-foreground">
                 {practiceTitle}
               </h1>
             </div>
@@ -315,10 +348,10 @@ function Index() {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            {/* <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
               Create calm, intentional study or workout sessions and keep your flow going,
               one block at a time.
-            </p>
+            </p> */}
 
             <div className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl bg-card/70 p-4 backdrop-blur">
               <div className="grid size-12 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
@@ -407,8 +440,8 @@ function Index() {
           <Button variant="destructive" onClick={resetTimers}>
             Reset
           </Button>
-          <Button variant="outline" onClick={() => setShowTeaBreak(true)}>
-            ☕ Tea break
+          <Button variant="outline" onClick={openTeaBreak}>
+            ☕ Take a Break
           </Button>
 
           <Button
@@ -595,11 +628,15 @@ function Index() {
       </div>
 
       <AnimatePresence>
-        {showTeaBreak && <TeaBreakModal onClose={() => setShowTeaBreak(false)} />}
+        {isBreakModalOpen && (
+          <TeaBreakModal
+            onCancel={() => setIsBreakModalOpen(false)}
+            onBreakComplete={handleBreakComplete}
+          />
+        )}
       </AnimatePresence>
 
-
-        </motion.main>
+    </motion.main>
       )}
     </AnimatePresence>
   );

@@ -17,7 +17,7 @@ const remainingCache = new Map<string, { duration: number; remaining: number }>(
 const formatTime = (total: number) => {
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };
 
 export default function Timer({
@@ -73,38 +73,43 @@ export default function Timer({
 
   const running = isActive && !isPaused;
 
-
   const progress = useMemo(
     () => (duration > 0 ? ((duration - remainingTime) / duration) * 100 : 0),
     [duration, remainingTime],
   );
 
-  const radius = 54;
+  const size = 96;
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex flex-1 items-center gap-6">
-      <div className="relative grid size-[124px] shrink-0 place-items-center">
-        <svg width="124" height="124" className="absolute inset-0">
+    <div className="flex flex-1 min-w-0 items-center gap-5">
+      <div className="relative flex h-[130px] w-[130px] min-w-[130px] shrink-0 items-center justify-center">
+        <svg
+          viewBox={`0 0 ${size} ${size}`}
+          className="absolute inset-0"
+          preserveAspectRatio="xMidYMid meet"
+        >
           <circle
             stroke="var(--color-muted)"
-            strokeWidth="6"
+            strokeWidth={strokeWidth}
             fill="transparent"
             r={radius}
-            cx="62"
-            cy="62"
+            cx={size / 2}
+            cy={size / 2}
           />
           <circle
             stroke={isPaused ? "var(--color-destructive)" : "var(--color-primary)"}
-            strokeWidth="6"
+            strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             fill="transparent"
             r={radius}
-            cx="62"
-            cy="62"
+            cx={size / 2}
+            cy={size / 2}
             style={{
               transition: running
                 ? "stroke-dashoffset 1s linear, stroke 0.3s ease-out"
@@ -114,14 +119,14 @@ export default function Timer({
             }}
           />
         </svg>
-        <span className="relative text-[2.2rem] font-bold leading-none tracking-tight tabular-nums text-foreground">
+        <span className="relative text-4xl font-extrabold leading-none tracking-tight tabular-nums text-foreground">
           {formatTime(remainingTime)}
         </span>
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-base font-medium text-foreground">{title}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-2xl font-medium text-foreground">{title}</p>
           {isActive && (
             <span
               className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${
@@ -134,20 +139,19 @@ export default function Timer({
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+        <p className="mt-1 text-xl tabular-nums text-muted-foreground">
           {formatTime(remainingTime)} left of {formatTime(duration)}
         </p>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
             className={`h-full rounded-full ${isPaused ? "bg-muted-foreground/60" : "bg-primary"}`}
             style={{
-              width: `${progress}%`,
+              width: `${Math.min(Math.max(progress, 0), 100)}%`,
               transition: running ? "width 1s linear" : "width 0.3s ease-out",
             }}
           />
         </div>
       </div>
-
     </div>
   );
 }

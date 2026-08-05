@@ -11,7 +11,7 @@ export default function LiveClock({ timezone }: { timezone: string }) {
   }, []);
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium tabular-nums text-muted-foreground">
+    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-[15px] font-medium tabular-nums text-muted-foreground">
       <span className="size-1.5 animate-pulse rounded-full bg-primary" />
       {now ? formatInTimezone(now, timezone) : "--:--:--"}
       <span className="text-[10px] uppercase tracking-[0.12em] opacity-70">
