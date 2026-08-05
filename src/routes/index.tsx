@@ -407,6 +407,10 @@ function Index() {
           <Button variant="destructive" onClick={resetTimers}>
             Reset
           </Button>
+          <Button variant="outline" onClick={() => setShowTeaBreak(true)}>
+            ☕ Tea break
+          </Button>
+
           <Button
             variant="ghost"
             className="ml-auto"
