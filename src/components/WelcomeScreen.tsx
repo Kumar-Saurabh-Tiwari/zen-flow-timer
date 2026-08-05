@@ -7,11 +7,12 @@ import TimezoneSelect from "@/components/TimezoneSelect";
 import { getDefaultTimezone } from "@/lib/timezones";
 
 const PRESET_GOALS = [
-  "Deep Work",
-  "Workout Flow",
-  "Study Sprint",
-  "Piano Practice",
-  "Mindfulness",
+  "Red Hat Training",
+  "Ansible Automation",
+  "Linux Administration",
+  "OpenShift",
+  "Kubernetes",
+  "Docker",
 ];
 
 interface WelcomeScreenProps {
