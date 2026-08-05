@@ -126,7 +126,7 @@ export default function Timer({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate text-2xl font-medium text-foreground">{title}</p>
+          <p className="text-2xl font-medium text-foreground">{title}</p>
           {isActive && (
             <span
               className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${

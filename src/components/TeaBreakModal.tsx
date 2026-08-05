@@ -13,7 +13,7 @@ const PRESET_TITLES = [
   "Tea Break 🍵",
   "Coffee Break ☕",
   "Lunch Break 🥗",
-  "Quick Stretch 🧘",
+  "Relax Break",
 ];
 
 const formatTime = (seconds: number) => {
@@ -100,21 +100,93 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
         className="w-full max-w-lg rounded-3xl border border-border bg-card p-8 text-center shadow-soft"
       >
         {phase === "setup" && (
-          <div className="relative mx-auto mb-6 h-28 w-28">
-            <div className="absolute inset-x-0 top-0 flex justify-center gap-3">
-              <span className="tea-steam tea-steam-1" />
-              <span className="tea-steam tea-steam-2" />
-              <span className="tea-steam tea-steam-3" />
-            </div>
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-0 left-1/2 h-16 w-24 -translate-x-1/2 overflow-hidden rounded-b-[2.5rem] rounded-t-lg border-2 border-primary/60 bg-card"
-            >
-              <div className="tea-liquid absolute inset-x-0 bottom-0 h-10 bg-primary/70" />
-            </motion.div>
-            <div className="absolute bottom-4 left-[calc(50%+48px)] h-8 w-6 rounded-r-full border-2 border-l-0 border-primary/60" />
-          </div>
+          <>
+            {selectedPreset === "Tea Break 🍵" && (
+              <div className="relative mx-auto mb-6 h-28 w-28">
+                <div className="absolute inset-x-0 top-0 flex justify-center gap-3">
+                  <span className="tea-steam tea-steam-1" />
+                  <span className="tea-steam tea-steam-2" />
+                  <span className="tea-steam tea-steam-3" />
+                </div>
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute bottom-0 left-1/2 h-16 w-24 -translate-x-1/2 overflow-hidden rounded-b-[2.5rem] rounded-t-lg border-2 border-primary/60 bg-card"
+                >
+                  <div className="tea-liquid absolute inset-x-0 bottom-0 h-10 bg-primary/70" />
+                </motion.div>
+                <div className="absolute bottom-4 left-[calc(50%+48px)] h-8 w-6 rounded-r-full border-2 border-l-0 border-primary/60" />
+              </div>
+            )}
+            {selectedPreset === "Coffee Break ☕" && (
+              <div className="relative mx-auto mb-6 h-28 w-28">
+                <div className="absolute inset-x-0 top-0 flex justify-center gap-3">
+                  <span className="coffee-steam coffee-steam-1" />
+                  <span className="coffee-steam coffee-steam-2" />
+                  <span className="coffee-steam coffee-steam-3" />
+                </div>
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute bottom-0 left-1/2 h-16 w-24 -translate-x-1/2 overflow-hidden rounded-b-[2.5rem] rounded-t-lg border-2 border-primary/60 bg-card"
+                >
+                  <div className="coffee-liquid absolute inset-x-0 bottom-0 h-10 bg-primary/100" />
+                </motion.div>
+                <div className="absolute bottom-4 left-[calc(50%+48px)] h-8 w-6 rounded-r-full border-2 border-l-0 border-primary/100" />
+              </div>
+            )}
+            {selectedPreset === "Lunch Break 🥗" && (
+              <motion.div
+                className="relative flex h-full w-full items-end justify-center"
+                initial={{ opacity: 0, y: 18, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -14, scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              >
+                <div className="lunch-stage">
+                  <div className="lunch-steam-row">
+                    <span className="lunch-steam" />
+                    <span className="lunch-steam lunch-steam-2" />
+                    <span className="lunch-steam lunch-steam-3" />
+                  </div>
+
+                  <div className="cutlery cutlery-fork">
+                    <div className="fork-tines">
+                      <span className="fork-tine" />
+                      <span className="fork-tine" />
+                      <span className="fork-tine" />
+                      <span className="fork-tine" />
+                    </div>
+                    <span className="cutlery-handle" />
+                  </div>
+
+                  <div className="cutlery cutlery-knife">
+                    <span className="knife-blade" />
+                    <span className="cutlery-handle" />
+                  </div>
+
+                  <div className="plate-shadow" />
+                  <div className="plate">
+                    <div className="plate-rim" />
+                    <div className="plate-well">
+                      <div className="lunch-rice" />
+                      <div className="lunch-food" />
+                      <span className="lunch-greens lunch-greens-1" />
+                      <span className="lunch-greens lunch-greens-2" />
+                      <span className="lunch-tomato lunch-tomato-1" />
+                      <span className="lunch-tomato lunch-tomato-2" />
+                    </div>
+                    <div className="plate-gloss" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            {selectedPreset === "Relax Break" && (
+              <div className="relative mx-auto mb-6 h-50 w-50">
+                <img src="public/custom-break.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              </div>
+            )}
+          </>
         )}
 
         {phase === "setup" ? (
@@ -197,23 +269,93 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
             </p>
 
             <div className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-soft">
-              <div className="mx-auto mb-5 h-28 w-28">
-                <div className="relative h-full w-full">
+              {selectedPreset === "Tea Break 🍵" && (
+                <div className="mx-auto mb-5 h-28 w-28">
+                  <div className="relative h-full w-full">
+                    <div className="absolute inset-x-0 top-0 flex justify-center gap-3">
+                      <span className="tea-steam tea-steam-1" />
+                      <span className="tea-steam tea-steam-2" />
+                      <span className="tea-steam tea-steam-3" />
+                    </div>
+                    <motion.div
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute bottom-0 left-1/2 h-16 w-24 -translate-x-1/2 overflow-hidden rounded-b-[2.5rem] rounded-t-lg border-2 border-primary/60 bg-card"
+                    >
+                      <div className="tea-liquid absolute inset-x-0 bottom-0 h-10 bg-primary/70" />
+                    </motion.div>
+                    <div className="absolute bottom-4 left-[calc(50%+48px)] h-8 w-6 rounded-r-full border-2 border-l-0 border-primary/60" />
+                  </div>
+                </div>
+              )}
+              {selectedPreset === "Coffee Break ☕" && (
+                <div className="relative mx-auto mb-6 h-28 w-28">
                   <div className="absolute inset-x-0 top-0 flex justify-center gap-3">
-                    <span className="tea-steam tea-steam-1" />
-                    <span className="tea-steam tea-steam-2" />
-                    <span className="tea-steam tea-steam-3" />
+                    <span className="coffee-steam coffee-steam-1" />
+                    <span className="coffee-steam coffee-steam-2" />
+                    <span className="coffee-steam coffee-steam-3" />
                   </div>
                   <motion.div
                     animate={{ y: [0, -6, 0] }}
                     transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute bottom-0 left-1/2 h-16 w-24 -translate-x-1/2 overflow-hidden rounded-b-[2.5rem] rounded-t-lg border-2 border-primary/60 bg-card"
                   >
-                    <div className="tea-liquid absolute inset-x-0 bottom-0 h-10 bg-primary/70" />
+                    <div className="coffee-liquid absolute inset-x-0 bottom-0 h-10 bg-primary/100" />
                   </motion.div>
-                  <div className="absolute bottom-4 left-[calc(50%+48px)] h-8 w-6 rounded-r-full border-2 border-l-0 border-primary/60" />
+                  <div className="absolute bottom-4 left-[calc(50%+48px)] h-8 w-6 rounded-r-full border-2 border-l-0 border-primary/100" />
                 </div>
-              </div>
+              )}
+              {selectedPreset === "Lunch Break 🥗" && (
+                <motion.div
+                  className="relative flex h-full w-full items-end justify-center"
+                  initial={{ opacity: 0, y: 18, scale: 0.94 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -14, scale: 0.96 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 22 }}
+                >
+                  <div className="lunch-stage">
+                    <div className="lunch-steam-row">
+                      <span className="lunch-steam" />
+                      <span className="lunch-steam lunch-steam-2" />
+                      <span className="lunch-steam lunch-steam-3" />
+                    </div>
+
+                    <div className="cutlery cutlery-fork">
+                      <div className="fork-tines">
+                        <span className="fork-tine" />
+                        <span className="fork-tine" />
+                        <span className="fork-tine" />
+                        <span className="fork-tine" />
+                      </div>
+                      <span className="cutlery-handle" />
+                    </div>
+
+                    <div className="cutlery cutlery-knife">
+                      <span className="knife-blade" />
+                      <span className="cutlery-handle" />
+                    </div>
+
+                    <div className="plate-shadow" />
+                    <div className="plate">
+                      <div className="plate-rim" />
+                      <div className="plate-well">
+                        <div className="lunch-rice" />
+                        <div className="lunch-food" />
+                        <span className="lunch-greens lunch-greens-1" />
+                        <span className="lunch-greens lunch-greens-2" />
+                        <span className="lunch-tomato lunch-tomato-1" />
+                        <span className="lunch-tomato lunch-tomato-2" />
+                      </div>
+                      <div className="plate-gloss" />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              {selectedPreset === "Relax Break" && (
+                <div className="relative mx-auto mb-6 h-50 w-50">
+                  <img src="public/custom-break.gif" alt="Stretching person" className="h-full w-full object-contain" />
+                </div>
+              )}
 
               <div className="break-live-timer mx-auto mt-4 w-fit font-extrabold text-primary">
                 {formatTime(remainingSeconds)}
