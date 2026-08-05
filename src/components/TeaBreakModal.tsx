@@ -16,6 +16,8 @@ const PRESET_TITLES = [
   "Coffee Timer ☕",
   "Lunch Break 🥗",
   "Relax Break",
+  "Study Break",
+  "Focus Break",
 ];
 
 const formatTime = (seconds: number) => {
@@ -157,6 +159,24 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 />
               </div>
             )}
+            {selectedPreset === "Study Break" && (
+              <div className="relative mx-auto mb-6 h-50 w-50">
+                <img
+                  src="/focus.gif"
+                  alt="Stretching person"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            )}
+            {selectedPreset === "Focus Break" && (
+              <div className="relative mx-auto mb-6 h-50 w-50">
+                <img
+                  src="/focus2.gif"
+                  alt="Stretching person"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            )}
           </>
         )}
 
@@ -289,6 +309,24 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 <div className="relative mx-auto mb-6 h-60 w-60">
                   <img
                     src="/custom-break.gif"
+                    alt="Stretching person"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              )}
+              {selectedPreset === "Study Break" && (
+                <div className="relative mx-auto mb-6 h-50 w-50">
+                  <img
+                    src="/focus.gif"
+                    alt="Stretching person"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              )}
+              {selectedPreset === "Focus Break" && (
+                <div className="relative mx-auto mb-6 h-50 w-50">
+                  <img
+                    src="/focus2.gif"
                     alt="Stretching person"
                     className="h-full w-full object-contain"
                   />
