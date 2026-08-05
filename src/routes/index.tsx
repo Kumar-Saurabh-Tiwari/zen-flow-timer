@@ -6,6 +6,8 @@ import Timer from "@/components/Timer";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import TimezoneSelect from "@/components/TimezoneSelect";
 import LiveClock from "@/components/LiveClock";
+import TeaBreakModal from "@/components/TeaBreakModal";
+
 import { getDefaultTimezone } from "@/lib/timezones";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,6 +88,8 @@ function Index() {
   const [userTimezone, setUserTimezone] = useState("UTC");
   const [showPlanCard, setShowPlanCard] = useState(true);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
+  const [showTeaBreak, setShowTeaBreak] = useState(false);
+
 
   useEffect(() => {
     const storedName = loadFromStorage(STORAGE_KEYS.name, "");
