@@ -6,6 +6,8 @@ import Timer from "@/components/Timer";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import TimezoneSelect from "@/components/TimezoneSelect";
 import LiveClock from "@/components/LiveClock";
+import TeaBreakModal from "@/components/TeaBreakModal";
+
 import { getDefaultTimezone } from "@/lib/timezones";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,6 +88,8 @@ function Index() {
   const [userTimezone, setUserTimezone] = useState("UTC");
   const [showPlanCard, setShowPlanCard] = useState(true);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
+  const [showTeaBreak, setShowTeaBreak] = useState(false);
+
 
   useEffect(() => {
     const storedName = loadFromStorage(STORAGE_KEYS.name, "");
@@ -403,6 +407,10 @@ function Index() {
           <Button variant="destructive" onClick={resetTimers}>
             Reset
           </Button>
+          <Button variant="outline" onClick={() => setShowTeaBreak(true)}>
+            ☕ Tea break
+          </Button>
+
           <Button
             variant="ghost"
             className="ml-auto"
@@ -432,7 +440,7 @@ function Index() {
               <Button onClick={addTimer}>Add timer</Button>
             </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr_1fr]">
+            <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr]">
               <div className="grid gap-2">
                 <Label htmlFor="t-title">Title</Label>
                 <Input
@@ -447,23 +455,19 @@ function Index() {
                 <Input
                   id="t-min"
                   type="number"
-                  min="0"
-                  value={newTimerMinutes}
-                  onChange={(e) => setNewTimerMinutes(Number(e.target.value))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="t-sec">Seconds</Label>
-                <Input
-                  id="t-sec"
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={newTimerSeconds}
-                  onChange={(e) => setNewTimerSeconds(Number(e.target.value))}
+                  min="1"
+                  value={newTimerMinutes === 0 ? "" : newTimerMinutes}
+                  onChange={(e) =>
+                    setNewTimerMinutes(e.target.value === "" ? 0 : Number(e.target.value))
+                  }
+                  onFocus={(e) => {
+                    if (newTimerMinutes === 0) e.target.select();
+                  }}
+                  placeholder="Enter minutes..."
                 />
               </div>
             </div>
+
           </section>
         </motion.div>
 
@@ -500,7 +504,7 @@ function Index() {
               >
 
               {timer.editing ? (
-                <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
+                <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
                   <Input
                     value={timer.title}
                     onChange={(e) =>
@@ -514,28 +518,22 @@ function Index() {
                   />
                   <Input
                     type="number"
-                    min="0"
-                    value={timer.tempMinutes}
+                    min="1"
+                    placeholder="Enter minutes..."
+                    value={timer.tempMinutes === 0 ? "" : timer.tempMinutes}
+                    onFocus={(e) => {
+                      if (timer.tempMinutes === 0) e.target.select();
+                    }}
                     onChange={(e) =>
                       setTimers((prev) =>
                         prev.map((item, idx) =>
                           idx === index
-                            ? { ...item, tempMinutes: Number(e.target.value) }
-                            : item,
-                        ),
-                      )
-                    }
-                  />
-                  <Input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={timer.tempSeconds}
-                    onChange={(e) =>
-                      setTimers((prev) =>
-                        prev.map((item, idx) =>
-                          idx === index
-                            ? { ...item, tempSeconds: Number(e.target.value) }
+                            ? {
+                                ...item,
+                                tempMinutes:
+                                  e.target.value === "" ? 0 : Number(e.target.value),
+                                tempSeconds: 0,
+                              }
                             : item,
                         ),
                       )
@@ -543,6 +541,7 @@ function Index() {
                   />
                   <Button onClick={() => saveTimer(index)}>Save</Button>
                 </div>
+
               ) : (
                 <div className="flex flex-wrap items-center gap-4">
                   <Timer
@@ -595,17 +594,10 @@ function Index() {
         </section>
       </div>
 
-      <div className="fixed bottom-6 right-6 z-50">
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowPlanCard((v) => !v)}
-          className="flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-soft"
-        >
-          {showPlanCard ? "✕ Hide plan" : "⚙ Plan / Add block"}
-        </motion.button>
-      </div>
+      <AnimatePresence>
+        {showTeaBreak && <TeaBreakModal onClose={() => setShowTeaBreak(false)} />}
+      </AnimatePresence>
+
 
         </motion.main>
       )}

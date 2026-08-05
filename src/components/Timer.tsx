@@ -79,32 +79,32 @@ export default function Timer({
     [duration, remainingTime],
   );
 
-  const radius = 28;
+  const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex flex-1 items-center gap-5">
-      <div className="relative grid size-[68px] shrink-0 place-items-center">
-        <svg width="68" height="68" className="absolute inset-0">
+    <div className="flex flex-1 items-center gap-6">
+      <div className="relative grid size-[124px] shrink-0 place-items-center">
+        <svg width="124" height="124" className="absolute inset-0">
           <circle
             stroke="var(--color-muted)"
-            strokeWidth="4"
+            strokeWidth="6"
             fill="transparent"
             r={radius}
-            cx="34"
-            cy="34"
+            cx="62"
+            cy="62"
           />
           <circle
             stroke={isPaused ? "var(--color-destructive)" : "var(--color-primary)"}
-            strokeWidth="4"
+            strokeWidth="6"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             fill="transparent"
             r={radius}
-            cx="34"
-            cy="34"
+            cx="62"
+            cy="62"
             style={{
               transition: running
                 ? "stroke-dashoffset 1s linear, stroke 0.3s ease-out"
@@ -114,10 +114,11 @@ export default function Timer({
             }}
           />
         </svg>
-        <span className="relative text-xs font-semibold tabular-nums text-foreground">
+        <span className="relative text-[2.2rem] font-bold leading-none tracking-tight tabular-nums text-foreground">
           {formatTime(remainingTime)}
         </span>
       </div>
+
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate text-base font-medium text-foreground">{title}</p>
