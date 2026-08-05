@@ -432,7 +432,7 @@ function Index() {
               <Button onClick={addTimer}>Add timer</Button>
             </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr_1fr]">
+            <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr]">
               <div className="grid gap-2">
                 <Label htmlFor="t-title">Title</Label>
                 <Input
@@ -447,23 +447,19 @@ function Index() {
                 <Input
                   id="t-min"
                   type="number"
-                  min="0"
-                  value={newTimerMinutes}
-                  onChange={(e) => setNewTimerMinutes(Number(e.target.value))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="t-sec">Seconds</Label>
-                <Input
-                  id="t-sec"
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={newTimerSeconds}
-                  onChange={(e) => setNewTimerSeconds(Number(e.target.value))}
+                  min="1"
+                  value={newTimerMinutes === 0 ? "" : newTimerMinutes}
+                  onChange={(e) =>
+                    setNewTimerMinutes(e.target.value === "" ? 0 : Number(e.target.value))
+                  }
+                  onFocus={(e) => {
+                    if (newTimerMinutes === 0) e.target.select();
+                  }}
+                  placeholder="Enter minutes..."
                 />
               </div>
             </div>
+
           </section>
         </motion.div>
 
