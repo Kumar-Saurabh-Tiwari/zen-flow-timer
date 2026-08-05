@@ -496,7 +496,7 @@ function Index() {
               >
 
               {timer.editing ? (
-                <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
+                <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
                   <Input
                     value={timer.title}
                     onChange={(e) =>
@@ -510,28 +510,22 @@ function Index() {
                   />
                   <Input
                     type="number"
-                    min="0"
-                    value={timer.tempMinutes}
+                    min="1"
+                    placeholder="Enter minutes..."
+                    value={timer.tempMinutes === 0 ? "" : timer.tempMinutes}
+                    onFocus={(e) => {
+                      if (timer.tempMinutes === 0) e.target.select();
+                    }}
                     onChange={(e) =>
                       setTimers((prev) =>
                         prev.map((item, idx) =>
                           idx === index
-                            ? { ...item, tempMinutes: Number(e.target.value) }
-                            : item,
-                        ),
-                      )
-                    }
-                  />
-                  <Input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={timer.tempSeconds}
-                    onChange={(e) =>
-                      setTimers((prev) =>
-                        prev.map((item, idx) =>
-                          idx === index
-                            ? { ...item, tempSeconds: Number(e.target.value) }
+                            ? {
+                                ...item,
+                                tempMinutes:
+                                  e.target.value === "" ? 0 : Number(e.target.value),
+                                tempSeconds: 0,
+                              }
                             : item,
                         ),
                       )
@@ -539,6 +533,7 @@ function Index() {
                   />
                   <Button onClick={() => saveTimer(index)}>Save</Button>
                 </div>
+
               ) : (
                 <div className="flex flex-wrap items-center gap-4">
                   <Timer
