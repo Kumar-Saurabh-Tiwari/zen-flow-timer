@@ -353,7 +353,11 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
               )}
               {selectedPreset === "Relax Break" && (
                 <div className="relative mx-auto mb-6 h-50 w-50">
-                  <img src="public/custom-break.gif" alt="Stretching person" className="h-full w-full object-contain" />
+                  <img
+                    src="/custom-break.gif"
+                    alt="Stretching person"
+                    className="h-full w-full object-contain"
+                  />
                 </div>
               )}
 
