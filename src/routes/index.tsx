@@ -594,6 +594,19 @@ function Index() {
 
         </section>
       </div>
+
+      <div className="fixed bottom-6 right-6 z-50">
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowPlanCard((v) => !v)}
+          className="flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-soft"
+        >
+          {showPlanCard ? "✕ Hide plan" : "⚙ Plan / Add block"}
+        </motion.button>
+      </div>
+
         </motion.main>
       )}
     </AnimatePresence>
