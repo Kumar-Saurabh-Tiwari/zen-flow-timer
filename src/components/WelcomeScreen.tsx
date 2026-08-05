@@ -106,6 +106,13 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           </div>
 
           <div className="grid gap-2">
+            <Label htmlFor="welcome-tz">Your local timezone</Label>
+            <TimezoneSelect id="welcome-tz" value={timezone} onChange={setTimezone} />
+          </div>
+
+
+
+          <div className="grid gap-2">
             <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
               Quick presets
             </span>
