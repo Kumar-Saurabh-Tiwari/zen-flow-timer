@@ -150,3 +150,48 @@
   --shadow-soft: var(--shadow-soft);
   --background-image-gradient-warm: var(--gradient-warm);
 }
+
+/* Tea break animation */
+.tea-steam {
+  display: block;
+  width: 6px;
+  height: 22px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--primary) 45%, transparent);
+  animation: teaSteamRise 2.6s infinite ease-in-out;
+}
+.tea-steam-2 {
+  animation-delay: 0.5s;
+}
+.tea-steam-3 {
+  animation-delay: 1s;
+}
+
+@keyframes teaSteamRise {
+  0% {
+    transform: translateY(6px) scaleX(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-18px) scaleX(1.6);
+    opacity: 0;
+  }
+}
+
+.tea-liquid {
+  animation: teaSway 3s infinite ease-in-out;
+}
+
+@keyframes teaSway {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(1.5deg);
+  }
+}
+
