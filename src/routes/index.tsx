@@ -257,11 +257,11 @@ function Index() {
       prev.map((timer, idx) =>
         idx === index
           ? {
-              ...timer,
-              editing: true,
-              tempMinutes: Math.floor(timer.duration / 60),
-              tempSeconds: timer.duration % 60,
-            }
+            ...timer,
+            editing: true,
+            tempMinutes: Math.floor(timer.duration / 60),
+            tempSeconds: timer.duration % 60,
+          }
           : timer,
       ),
     );
@@ -315,328 +315,327 @@ function Index() {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:py-16"
         >
-      <div className="mx-auto flex w-full max-w-[1140px] flex-col gap-5">
+          <div className="mx-auto flex w-full max-w-[1140px] flex-col gap-5">
 
-        <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm px-6 py-4 shadow-soft">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Welcome to Red Hat Training
-              </p>
-              <h1 className="mt-1 truncate text-3xl font-semibold tracking-tight text-foreground">
-                {practiceTitle}
-              </h1>
-            </div>
-            <LiveClock timezone={userTimezone} />
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={isHeroExpanded ? "Collapse header" : "Expand header"}
-              aria-expanded={isHeroExpanded}
-              onClick={() => setIsHeroExpanded((v) => !v)}
-            >
-              {isHeroExpanded ? "▲" : "▼"}
-            </Button>
-          </div>
+            <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm px-6 py-4 shadow-soft">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    Welcome to Red Hat Training
+                  </p>
+                  <h1 className="mt-1 truncate text-3xl font-semibold tracking-tight text-foreground">
+                    {practiceTitle}
+                  </h1>
+                </div>
+                <LiveClock timezone={userTimezone} />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={isHeroExpanded ? "Collapse header" : "Expand header"}
+                  aria-expanded={isHeroExpanded}
+                  onClick={() => setIsHeroExpanded((v) => !v)}
+                >
+                  {isHeroExpanded ? "▲" : "▼"}
+                </Button>
+              </div>
 
-          <motion.div
-            initial={false}
-            animate={{
-              height: isHeroExpanded ? "auto" : 0,
-              opacity: isHeroExpanded ? 1 : 0,
-            }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="overflow-hidden"
-          >
-            {/* <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              <motion.div
+                initial={false}
+                animate={{
+                  height: isHeroExpanded ? "auto" : 0,
+                  opacity: isHeroExpanded ? 1 : 0,
+                }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                {/* <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
               Create calm, intentional study or workout sessions and keep your flow going,
               one block at a time.
             </p> */}
 
-            <div className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl bg-card/70 p-4 backdrop-blur">
-              <div className="grid size-12 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
-                {profileAvatar}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-base font-medium text-foreground">
-                  Welcome back, {userName || "friend"}
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  {timers.length} block{timers.length === 1 ? "" : "s"} ·{" "}
-                  {fmt(totalDuration)} total · {userTimezone.replace(/_/g, " ")}
-                </p>
-              </div>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setProfileDraft(userName);
-                  setIsEditingProfile((v) => !v);
-                }}
-              >
-                {isEditingProfile ? "Close" : "Edit profile"}
-              </Button>
-            </div>
-          </motion.div>
-        </section>
-
-        {isEditingProfile && (
-          <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
-            <h3 className="text-lg font-medium text-foreground">Profile settings</h3>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={profileDraft}
-                  onChange={(e) => setProfileDraft(e.target.value)}
-                  placeholder="Enter your name"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="heading">Heading</Label>
-                <Input
-                  id="heading"
-                  value={practiceTitle}
-                  onChange={(e) => setPracticeTitle(e.target.value)}
-                  placeholder="Practice title"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="timezone">Timezone</Label>
-                <TimezoneSelect
-                  id="timezone"
-                  value={userTimezone}
-                  onChange={setUserTimezone}
-                />
-              </div>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <Button onClick={saveProfile}>Save profile</Button>
-              <Button variant="ghost" onClick={() => setIsEditingProfile(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="secondary"
-                className="sm:ml-auto"
-                onClick={() => {
-                  setIsEditingProfile(false);
-                  setShowWelcome(true);
-                }}
-              >
-                Re-run onboarding
-              </Button>
-            </div>
-          </section>
-        )}
-
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-soft">
-          <Button
-            variant="secondary"
-            onClick={timersStarted ? togglePause : startTimers}
-            disabled={timers.length === 0}
-          >
-            {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
-          </Button>
-          <Button variant="destructive" onClick={resetTimers}>
-            Reset
-          </Button>
-          <Button variant="outline" onClick={openTeaBreak}>
-            ☕ Take a Break
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="ml-auto"
-            aria-expanded={showPlanCard}
-            onClick={() => setShowPlanCard((v) => !v)}
-          >
-            {showPlanCard ? "Hide plan panel" : "⚙ Plan / Add block"}
-          </Button>
-        </div>
-
-        <motion.div
-          initial={false}
-          animate={{ height: showPlanCard ? "auto" : 0, opacity: showPlanCard ? 1 : 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="overflow-hidden"
-        >
-          <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Plan your session
-                </p>
-                <h3 className="mt-1 text-lg font-medium text-foreground">
-                  Create a new practice block
-                </h3>
-              </div>
-              <Button onClick={addTimer}>Add timer</Button>
-            </div>
-
-            <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr]">
-              <div className="grid gap-2">
-                <Label htmlFor="t-title">Title</Label>
-                <Input
-                  id="t-title"
-                  value={newTimerTitle}
-                  onChange={(e) => setNewTimerTitle(e.target.value)}
-                  placeholder="Warm up"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="t-min">Minutes</Label>
-                <Input
-                  id="t-min"
-                  type="number"
-                  min="1"
-                  value={newTimerMinutes === 0 ? "" : newTimerMinutes}
-                  onChange={(e) =>
-                    setNewTimerMinutes(e.target.value === "" ? 0 : Number(e.target.value))
-                  }
-                  onFocus={(e) => {
-                    if (newTimerMinutes === 0) e.target.select();
-                  }}
-                  placeholder="Enter minutes..."
-                />
-              </div>
-            </div>
-
-          </section>
-        </motion.div>
-
-
-        <section className="flex flex-col gap-3">
-          {timers.length === 0 && (
-            <p className="rounded-3xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
-              No blocks yet — add your first one above to begin.
-            </p>
-          )}
-
-          <AnimatePresence initial={false}>
-            {timers.map((timer, index) => (
-              <motion.div
-                key={timer.id}
-                layout
-                initial={{ opacity: 0, y: 15 }}
-                animate={{
-                  opacity: timer.isExpired ? 0.6 : 1,
-                  y: 0,
-                  scale: activeTimerIndex === index ? 1.015 : 1,
-                  boxShadow:
-                    activeTimerIndex === index
-                      ? "0 22px 50px -22px oklch(0.62 0.11 45 / 0.55)"
-                      : "0 0px 0px 0px oklch(0.62 0.11 45 / 0)",
-                }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-                className={`rounded-3xl border bg-card p-5 ${
-                  activeTimerIndex === index
-                    ? "border-primary ring-2 ring-primary/25"
-                    : "border-border"
-                }`}
-              >
-
-              {timer.editing ? (
-                <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
-                  <Input
-                    value={timer.title}
-                    onChange={(e) =>
-                      setTimers((prev) =>
-                        prev.map((item, idx) =>
-                          idx === index ? { ...item, title: e.target.value } : item,
-                        ),
-                      )
-                    }
-                    placeholder="Timer title"
-                  />
-                  <Input
-                    type="number"
-                    min="1"
-                    placeholder="Enter minutes..."
-                    value={timer.tempMinutes === 0 ? "" : timer.tempMinutes}
-                    onFocus={(e) => {
-                      if (timer.tempMinutes === 0) e.target.select();
+                <div className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl bg-card/70 p-4 backdrop-blur">
+                  <div className="grid size-12 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
+                    {profileAvatar}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base font-medium text-foreground">
+                      Welcome back, {userName || "friend"}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {timers.length} block{timers.length === 1 ? "" : "s"} ·{" "}
+                      {fmt(totalDuration)} total · {userTimezone.replace(/_/g, " ")}
+                    </p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setProfileDraft(userName);
+                      setIsEditingProfile((v) => !v);
                     }}
-                    onChange={(e) =>
-                      setTimers((prev) =>
-                        prev.map((item, idx) =>
-                          idx === index
-                            ? {
-                                ...item,
-                                tempMinutes:
-                                  e.target.value === "" ? 0 : Number(e.target.value),
-                                tempSeconds: 0,
-                              }
-                            : item,
-                        ),
-                      )
-                    }
-                  />
-                  <Button onClick={() => saveTimer(index)}>Save</Button>
+                  >
+                    {isEditingProfile ? "Close" : "Edit profile"}
+                  </Button>
                 </div>
 
-              ) : (
-                <div className="flex flex-wrap items-center gap-4">
-                  <Timer
-                    id={timer.id}
-                    title={timer.title}
-                    duration={timer.duration}
-                    isActive={timer.isActive}
-                    isPaused={isPaused}
-                    onComplete={() => handleTimerComplete(index)}
-                  />
-                  <div className="flex items-center gap-1.5">
-                    {timer.isExpired && (
-                      <span className="mr-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
-                        Done
-                      </span>
-                    )}
-                    <Button variant="secondary" size="sm" onClick={() => editTimer(index)}>
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteTimer(index)}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Move up"
-                      onClick={() => moveTimer(index, -1)}
-                    >
-                      ▲
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Move down"
-                      onClick={() => moveTimer(index, 1)}
-                    >
-                      ▼
-                    </Button>
+                <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-soft">
+                  <Button
+                    variant="secondary"
+                    onClick={timersStarted ? togglePause : startTimers}
+                    disabled={timers.length === 0}
+                  >
+                    {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
+                  </Button>
+                  <Button variant="destructive" onClick={resetTimers}>
+                    Reset
+                  </Button>
+                  <Button variant="outline" onClick={openTeaBreak}>
+                    ☕ Take a Break
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    className="ml-auto"
+                    aria-expanded={showPlanCard}
+                    onClick={() => setShowPlanCard((v) => !v)}
+                  >
+                    {showPlanCard ? "Hide plan panel" : "⚙ Plan / Add block"}
+                  </Button>
+                </div>
+              </motion.div>
+            </section>
+
+            {isEditingProfile && (
+              <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+                <h3 className="text-lg font-medium text-foreground">Profile settings</h3>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={profileDraft}
+                      onChange={(e) => setProfileDraft(e.target.value)}
+                      placeholder="Enter your name"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="heading">Heading</Label>
+                    <Input
+                      id="heading"
+                      value={practiceTitle}
+                      onChange={(e) => setPracticeTitle(e.target.value)}
+                      placeholder="Practice title"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <TimezoneSelect
+                      id="timezone"
+                      value={userTimezone}
+                      onChange={setUserTimezone}
+                    />
                   </div>
                 </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Button onClick={saveProfile}>Save profile</Button>
+                  <Button variant="ghost" onClick={() => setIsEditingProfile(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="sm:ml-auto"
+                    onClick={() => {
+                      setIsEditingProfile(false);
+                      setShowWelcome(true);
+                    }}
+                  >
+                    Re-run onboarding
+                  </Button>
+                </div>
+              </section>
+            )}
+
+            <motion.div
+              initial={false}
+              animate={{ height: showPlanCard ? "auto" : 0, opacity: showPlanCard ? 1 : 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="overflow-hidden"
+            >
+              <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                      Plan your session
+                    </p>
+                    <h3 className="mt-1 text-lg font-medium text-foreground">
+                      Create a new practice block
+                    </h3>
+                  </div>
+                  <Button onClick={addTimer}>Add timer</Button>
+                </div>
+
+                <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr]">
+                  <div className="grid gap-2">
+                    <Label htmlFor="t-title">Title</Label>
+                    <Input
+                      id="t-title"
+                      value={newTimerTitle}
+                      onChange={(e) => setNewTimerTitle(e.target.value)}
+                      placeholder="Warm up"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="t-min">Minutes</Label>
+                    <Input
+                      id="t-min"
+                      type="number"
+                      min="1"
+                      value={newTimerMinutes === 0 ? "" : newTimerMinutes}
+                      onChange={(e) =>
+                        setNewTimerMinutes(e.target.value === "" ? 0 : Number(e.target.value))
+                      }
+                      onFocus={(e) => {
+                        if (newTimerMinutes === 0) e.target.select();
+                      }}
+                      placeholder="Enter minutes..."
+                    />
+                  </div>
+                </div>
+
+              </section>
+            </motion.div>
+
+
+            <section className="flex flex-col gap-3">
+              {timers.length === 0 && (
+                <p className="rounded-3xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
+                  No blocks yet — add your first one above to begin.
+                </p>
               )}
-              </motion.div>
-            ))}
+
+              <AnimatePresence initial={false}>
+                {timers.map((timer, index) => (
+                  <motion.div
+                    key={timer.id}
+                    layout
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{
+                      opacity: timer.isExpired ? 0.6 : 1,
+                      y: 0,
+                      scale: activeTimerIndex === index ? 1.015 : 1,
+                      boxShadow:
+                        activeTimerIndex === index
+                          ? "0 22px 50px -22px oklch(0.62 0.11 45 / 0.55)"
+                          : "0 0px 0px 0px oklch(0.62 0.11 45 / 0)",
+                    }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    className={`rounded-3xl border bg-card p-5 ${activeTimerIndex === index
+                        ? "border-primary ring-2 ring-primary/25"
+                        : "border-border"
+                      }`}
+                  >
+
+                    {timer.editing ? (
+                      <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
+                        <Input
+                          value={timer.title}
+                          onChange={(e) =>
+                            setTimers((prev) =>
+                              prev.map((item, idx) =>
+                                idx === index ? { ...item, title: e.target.value } : item,
+                              ),
+                            )
+                          }
+                          placeholder="Timer title"
+                        />
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="Enter minutes..."
+                          value={timer.tempMinutes === 0 ? "" : timer.tempMinutes}
+                          onFocus={(e) => {
+                            if (timer.tempMinutes === 0) e.target.select();
+                          }}
+                          onChange={(e) =>
+                            setTimers((prev) =>
+                              prev.map((item, idx) =>
+                                idx === index
+                                  ? {
+                                    ...item,
+                                    tempMinutes:
+                                      e.target.value === "" ? 0 : Number(e.target.value),
+                                    tempSeconds: 0,
+                                  }
+                                  : item,
+                              ),
+                            )
+                          }
+                        />
+                        <Button onClick={() => saveTimer(index)}>Save</Button>
+                      </div>
+
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-4">
+                        <Timer
+                          id={timer.id}
+                          title={timer.title}
+                          duration={timer.duration}
+                          isActive={timer.isActive}
+                          isPaused={isPaused}
+                          onComplete={() => handleTimerComplete(index)}
+                        />
+                        <div className="flex items-center gap-1.5">
+                          {timer.isExpired && (
+                            <span className="mr-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
+                              Done
+                            </span>
+                          )}
+                          <Button variant="secondary" size="sm" onClick={() => editTimer(index)}>
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteTimer(index)}
+                          >
+                            Delete
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Move up"
+                            onClick={() => moveTimer(index, -1)}
+                          >
+                            ▲
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Move down"
+                            onClick={() => moveTimer(index, 1)}
+                          >
+                            ▼
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+            </section>
+          </div>
+
+          <AnimatePresence>
+            {isBreakModalOpen && (
+              <TeaBreakModal
+                onCancel={() => setIsBreakModalOpen(false)}
+                onBreakComplete={handleBreakComplete}
+              />
+            )}
           </AnimatePresence>
 
-        </section>
-      </div>
-
-      <AnimatePresence>
-        {isBreakModalOpen && (
-          <TeaBreakModal
-            onCancel={() => setIsBreakModalOpen(false)}
-            onBreakComplete={handleBreakComplete}
-          />
-        )}
-      </AnimatePresence>
-
-    </motion.main>
+        </motion.main>
       )}
     </AnimatePresence>
   );
