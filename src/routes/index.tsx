@@ -4,6 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
 import WelcomeScreen from "@/components/WelcomeScreen";
+import TimezoneSelect from "@/components/TimezoneSelect";
+import LiveClock from "@/components/LiveClock";
+import { getDefaultTimezone } from "@/lib/timezones";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +38,7 @@ const STORAGE_KEYS = {
   name: "timerApp_userName",
   title: "timerApp_practiceTitle",
   timers: "timerApp_timers",
+  timezone: "timerApp_userTimezone",
 };
 
 interface TimerBlock {
@@ -79,11 +83,15 @@ function Index() {
   const [isPaused, setIsPaused] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [userTimezone, setUserTimezone] = useState("UTC");
+  const [showPlanCard, setShowPlanCard] = useState(true);
+  const [isHeroExpanded, setIsHeroExpanded] = useState(false);
 
   useEffect(() => {
     const storedName = loadFromStorage(STORAGE_KEYS.name, "");
     setUserName(storedName || "there");
     setPracticeTitle(loadFromStorage(STORAGE_KEYS.title, "Practice Time"));
+    setUserTimezone(loadFromStorage(STORAGE_KEYS.timezone, getDefaultTimezone()));
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
         ...t,
@@ -98,9 +106,10 @@ function Index() {
     setHydrated(true);
   }, []);
 
-  const completeWelcome = (name: string, goal: string) => {
+  const completeWelcome = (name: string, goal: string, timezone: string) => {
     setUserName(name);
     setPracticeTitle(goal);
+    setUserTimezone(timezone);
     setShowWelcome(false);
   };
 
@@ -109,8 +118,9 @@ function Index() {
     if (!hydrated || showWelcome) return;
     window.localStorage.setItem(STORAGE_KEYS.name, JSON.stringify(userName));
     window.localStorage.setItem(STORAGE_KEYS.title, JSON.stringify(practiceTitle));
+    window.localStorage.setItem(STORAGE_KEYS.timezone, JSON.stringify(userTimezone));
     window.localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-  }, [hydrated, showWelcome, userName, practiceTitle, timers]);
+  }, [hydrated, showWelcome, userName, practiceTitle, userTimezone, timers]);
 
   const saveProfile = () => {
     setUserName(profileDraft.trim() || "there");
