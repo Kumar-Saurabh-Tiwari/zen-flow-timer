@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import TimezoneSelect from "@/components/TimezoneSelect";
+import { getDefaultTimezone } from "@/lib/timezones";
 
 const PRESET_GOALS = [
   "Deep Work",
@@ -13,19 +15,21 @@ const PRESET_GOALS = [
 ];
 
 interface WelcomeScreenProps {
-  onComplete: (name: string, goal: string) => void;
+  onComplete: (name: string, goal: string, timezone: string) => void;
 }
 
 export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   const [name, setName] = useState("");
   const [goal, setGoal] = useState("Practice Time");
+  const [timezone, setTimezone] = useState(getDefaultTimezone());
 
   const avatarInitial = name.trim() ? name.trim().charAt(0).toUpperCase() : "✦";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete(name.trim() || "Friend", goal.trim() || "Practice Time");
+    onComplete(name.trim() || "Friend", goal.trim() || "Practice Time", timezone);
   };
+
 
   return (
     <motion.div
@@ -100,6 +104,13 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
               className="transition-shadow focus-visible:shadow-soft"
             />
           </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="welcome-tz">Your local timezone</Label>
+            <TimezoneSelect id="welcome-tz" value={timezone} onChange={setTimezone} />
+          </div>
+
+
 
           <div className="grid gap-2">
             <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">

@@ -4,6 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
 import WelcomeScreen from "@/components/WelcomeScreen";
+import TimezoneSelect from "@/components/TimezoneSelect";
+import LiveClock from "@/components/LiveClock";
+import { getDefaultTimezone } from "@/lib/timezones";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +38,7 @@ const STORAGE_KEYS = {
   name: "timerApp_userName",
   title: "timerApp_practiceTitle",
   timers: "timerApp_timers",
+  timezone: "timerApp_userTimezone",
 };
 
 interface TimerBlock {
@@ -79,11 +83,15 @@ function Index() {
   const [isPaused, setIsPaused] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [userTimezone, setUserTimezone] = useState("UTC");
+  const [showPlanCard, setShowPlanCard] = useState(true);
+  const [isHeroExpanded, setIsHeroExpanded] = useState(false);
 
   useEffect(() => {
     const storedName = loadFromStorage(STORAGE_KEYS.name, "");
     setUserName(storedName || "there");
     setPracticeTitle(loadFromStorage(STORAGE_KEYS.title, "Practice Time"));
+    setUserTimezone(loadFromStorage(STORAGE_KEYS.timezone, getDefaultTimezone()));
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
         ...t,
@@ -98,9 +106,10 @@ function Index() {
     setHydrated(true);
   }, []);
 
-  const completeWelcome = (name: string, goal: string) => {
+  const completeWelcome = (name: string, goal: string, timezone: string) => {
     setUserName(name);
     setPracticeTitle(goal);
+    setUserTimezone(timezone);
     setShowWelcome(false);
   };
 
@@ -109,8 +118,9 @@ function Index() {
     if (!hydrated || showWelcome) return;
     window.localStorage.setItem(STORAGE_KEYS.name, JSON.stringify(userName));
     window.localStorage.setItem(STORAGE_KEYS.title, JSON.stringify(practiceTitle));
+    window.localStorage.setItem(STORAGE_KEYS.timezone, JSON.stringify(userTimezone));
     window.localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-  }, [hydrated, showWelcome, userName, practiceTitle, timers]);
+  }, [hydrated, showWelcome, userName, practiceTitle, userTimezone, timers]);
 
   const saveProfile = () => {
     setUserName(profileDraft.trim() || "there");
@@ -152,6 +162,7 @@ function Index() {
     );
     setTimersStarted(true);
     setIsPaused(false);
+    setShowPlanCard(false);
   };
 
   const togglePause = () => {
@@ -267,49 +278,74 @@ function Index() {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:py-16"
         >
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-[1140px] flex-col gap-5">
 
-        <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm p-8 shadow-soft">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Focused practice, beautifully paced
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground">
-            {practiceTitle}
-          </h1>
-          <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
-            Create calm, intentional study or workout sessions and keep your flow going,
-            one block at a time.
-          </p>
-
-          <div className="mt-7 flex flex-wrap items-center gap-4 rounded-2xl bg-card/70 p-4 backdrop-blur">
-            <div className="grid size-12 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
-              {profileAvatar}
-            </div>
+        <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm px-6 py-4 shadow-soft">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-0 flex-1">
-              <h2 className="text-base font-medium text-foreground">
-                Welcome back, {userName || "friend"}
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                {timers.length} block{timers.length === 1 ? "" : "s"} · {fmt(totalDuration)}{" "}
-                total
+              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Focused practice, beautifully paced
               </p>
+              <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight text-foreground">
+                {practiceTitle}
+              </h1>
             </div>
+            <LiveClock timezone={userTimezone} />
             <Button
-              variant="secondary"
-              onClick={() => {
-                setProfileDraft(userName);
-                setIsEditingProfile((v) => !v);
-              }}
+              variant="ghost"
+              size="icon"
+              aria-label={isHeroExpanded ? "Collapse header" : "Expand header"}
+              aria-expanded={isHeroExpanded}
+              onClick={() => setIsHeroExpanded((v) => !v)}
             >
-              {isEditingProfile ? "Close" : "Edit profile"}
+              {isHeroExpanded ? "▲" : "▼"}
             </Button>
           </div>
+
+          <motion.div
+            initial={false}
+            animate={{
+              height: isHeroExpanded ? "auto" : 0,
+              opacity: isHeroExpanded ? 1 : 0,
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Create calm, intentional study or workout sessions and keep your flow going,
+              one block at a time.
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl bg-card/70 p-4 backdrop-blur">
+              <div className="grid size-12 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
+                {profileAvatar}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-medium text-foreground">
+                  Welcome back, {userName || "friend"}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {timers.length} block{timers.length === 1 ? "" : "s"} ·{" "}
+                  {fmt(totalDuration)} total · {userTimezone.replace(/_/g, " ")}
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setProfileDraft(userName);
+                  setIsEditingProfile((v) => !v);
+                }}
+              >
+                {isEditingProfile ? "Close" : "Edit profile"}
+              </Button>
+            </div>
+          </motion.div>
         </section>
 
         {isEditingProfile && (
           <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
             <h3 className="text-lg font-medium text-foreground">Profile settings</h3>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -326,6 +362,14 @@ function Index() {
                   value={practiceTitle}
                   onChange={(e) => setPracticeTitle(e.target.value)}
                   placeholder="Practice title"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="timezone">Timezone</Label>
+                <TimezoneSelect
+                  id="timezone"
+                  value={userTimezone}
+                  onChange={setUserTimezone}
                 />
               </div>
             </div>
@@ -348,64 +392,81 @@ function Index() {
           </section>
         )}
 
-        <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Plan your session
-              </p>
-              <h3 className="mt-1 text-lg font-medium text-foreground">
-                Create a new practice block
-              </h3>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={addTimer}>Add timer</Button>
-              <Button
-                variant="secondary"
-                onClick={timersStarted ? togglePause : startTimers}
-                disabled={timers.length === 0}
-              >
-                {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
-              </Button>
-              <Button variant="destructive" onClick={resetTimers}>
-                Reset
-              </Button>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-soft">
+          <Button
+            variant="secondary"
+            onClick={timersStarted ? togglePause : startTimers}
+            disabled={timers.length === 0}
+          >
+            {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
+          </Button>
+          <Button variant="destructive" onClick={resetTimers}>
+            Reset
+          </Button>
+          <Button
+            variant="ghost"
+            className="ml-auto"
+            aria-expanded={showPlanCard}
+            onClick={() => setShowPlanCard((v) => !v)}
+          >
+            {showPlanCard ? "Hide plan panel" : "⚙ Plan / Add block"}
+          </Button>
+        </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
-            <div className="grid gap-2">
-              <Label htmlFor="t-title">Title</Label>
-              <Input
-                id="t-title"
-                value={newTimerTitle}
-                onChange={(e) => setNewTimerTitle(e.target.value)}
-                placeholder="Warm up"
-              />
+        <motion.div
+          initial={false}
+          animate={{ height: showPlanCard ? "auto" : 0, opacity: showPlanCard ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="overflow-hidden"
+        >
+          <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Plan your session
+                </p>
+                <h3 className="mt-1 text-lg font-medium text-foreground">
+                  Create a new practice block
+                </h3>
+              </div>
+              <Button onClick={addTimer}>Add timer</Button>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="t-min">Minutes</Label>
-              <Input
-                id="t-min"
-                type="number"
-                min="0"
-                value={newTimerMinutes}
-                onChange={(e) => setNewTimerMinutes(Number(e.target.value))}
-              />
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr_1fr]">
+              <div className="grid gap-2">
+                <Label htmlFor="t-title">Title</Label>
+                <Input
+                  id="t-title"
+                  value={newTimerTitle}
+                  onChange={(e) => setNewTimerTitle(e.target.value)}
+                  placeholder="Warm up"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="t-min">Minutes</Label>
+                <Input
+                  id="t-min"
+                  type="number"
+                  min="0"
+                  value={newTimerMinutes}
+                  onChange={(e) => setNewTimerMinutes(Number(e.target.value))}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="t-sec">Seconds</Label>
+                <Input
+                  id="t-sec"
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={newTimerSeconds}
+                  onChange={(e) => setNewTimerSeconds(Number(e.target.value))}
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="t-sec">Seconds</Label>
-              <Input
-                id="t-sec"
-                type="number"
-                min="0"
-                max="59"
-                value={newTimerSeconds}
-                onChange={(e) => setNewTimerSeconds(Number(e.target.value))}
-              />
-            </div>
-          </div>
-        </section>
+          </section>
+        </motion.div>
+
 
         <section className="flex flex-col gap-3">
           {timers.length === 0 && (
@@ -533,6 +594,19 @@ function Index() {
 
         </section>
       </div>
+
+      <div className="fixed bottom-6 right-6 z-50">
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowPlanCard((v) => !v)}
+          className="flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-soft"
+        >
+          {showPlanCard ? "✕ Hide plan" : "⚙ Plan / Add block"}
+        </motion.button>
+      </div>
+
         </motion.main>
       )}
     </AnimatePresence>
