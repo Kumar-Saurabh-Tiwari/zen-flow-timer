@@ -139,9 +139,6 @@ export default function Timer({
             </span>
           )}
         </div>
-        <p className="mt-1 text-xl tabular-nums text-muted-foreground">
-          {formatTime(remainingTime)} left of {formatTime(duration)}
-        </p>
         <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
             className={`h-full rounded-full ${isPaused ? "bg-muted-foreground/60" : "bg-primary"}`}

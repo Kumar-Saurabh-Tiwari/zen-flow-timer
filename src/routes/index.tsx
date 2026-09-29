@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Coffee, ListPlus, Pencil, Play, RotateCcw, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
 import WelcomeScreen from "@/components/WelcomeScreen";
@@ -327,12 +328,11 @@ function Index() {
                     <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                       Welcome to <span className="font-bold text-foreground">Red Hat</span> Training
                     </p>
-                    <h1 className="mt-1 truncate text-3xl font-semibold tracking-tight text-foreground">
+                    <h1 className="mt-1 whitespace-normal break-words text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
                       {practiceTitle}
                     </h1>
                   </div>
                 </div>
-                <LiveClock timezone={userTimezone} />
                 <Button
                   variant="ghost"
                   size="icon"
@@ -382,31 +382,47 @@ function Index() {
                   </Button>
                 </div>
 
-                <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-soft">
-                  <Button
-                    variant="secondary"
-                    onClick={timersStarted ? togglePause : startTimers}
-                    disabled={timers.length === 0}
-                  >
-                    {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
-                  </Button>
-                  <Button variant="destructive" onClick={resetTimers}>
-                    Reset
-                  </Button>
-                  <Button variant="outline" onClick={openTeaBreak}>
-                    ☕ Take a Break
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    className="ml-auto"
-                    aria-expanded={showPlanCard}
-                    onClick={() => setShowPlanCard((v) => !v)}
-                  >
-                    {showPlanCard ? "Hide plan panel" : "⚙ Plan / Add block"}
-                  </Button>
-                </div>
               </motion.div>
+
+              <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-soft">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={timersStarted ? togglePause : startTimers}
+                  disabled={timers.length === 0}
+                >
+                  {!timersStarted && <Play className="size-3.5" />}
+                  {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
+                </Button>
+                <Button variant="destructive" size="sm" className="rounded-xl" onClick={resetTimers}>
+                  <RotateCcw className="size-3.5" />
+                  Reset
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-xl" onClick={openTeaBreak}>
+                  <Coffee className="size-3.5" />
+                  Take a Break
+                </Button>
+
+                <div className="mx-auto">
+                  <LiveClock timezone={userTimezone} />
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto rounded-xl"
+                  aria-expanded={showPlanCard}
+                  onClick={() => setShowPlanCard((v) => !v)}
+                >
+                  {!showPlanCard && <ListPlus className="size-3.5" />}
+                  {showPlanCard ? "Hide plan panel" : "Plan / Add block"}
+                </Button>
+              </div>
+
+              <p className="group ml-auto mt-3 w-fit cursor-default rounded-full border border-border/70 bg-card/60 px-3 py-1 font-serif text-[13px] italic tracking-[0.1em] text-foreground/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card/85 hover:text-primary hover:tracking-[0.15em] motion-reduce:transition-none">
+                Instructor <span className="font-semibold not-italic text-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none">Manas Kumar</span>
+              </p>
             </section>
 
             {isEditingProfile && (
@@ -534,7 +550,7 @@ function Index() {
                     }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.35, ease: "easeOut" }}
-                    className={`rounded-3xl border bg-card p-5 ${activeTimerIndex === index
+                    className={`relative rounded-3xl border bg-card p-5 ${activeTimerIndex === index
                         ? "border-primary ring-2 ring-primary/25"
                         : "border-border"
                       }`}
@@ -581,33 +597,46 @@ function Index() {
 
                     ) : (
                       <div className="flex flex-wrap items-center gap-4">
-                        <Timer
-                          id={timer.id}
-                          title={timer.title}
-                          duration={timer.duration}
-                          isActive={timer.isActive}
-                          isPaused={isPaused}
-                          onComplete={() => handleTimerComplete(index)}
-                        />
-                        <div className="flex items-center gap-1.5">
+                        <div className="min-w-0 flex-1 pr-36">
+                          <Timer
+                            id={timer.id}
+                            title={timer.title}
+                            duration={timer.duration}
+                            isActive={timer.isActive}
+                            isPaused={isPaused}
+                            onComplete={() => handleTimerComplete(index)}
+                          />
+                        </div>
+                        <div className="absolute right-5 top-5 flex items-center gap-1.5">
                           {timer.isExpired && (
                             <span className="mr-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
                               Done
                             </span>
                           )}
-                          <Button variant="secondary" size="sm" onClick={() => editTimer(index)}>
-                            Edit
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="size-7"
+                            aria-label="Edit timer"
+                            title="Edit timer"
+                            onClick={() => editTimer(index)}
+                          >
+                            <Pencil className="size-4" />
                           </Button>
                           <Button
                             variant="destructive"
-                            size="sm"
+                            size="icon"
+                            className="size-7"
+                            aria-label="Delete timer"
+                            title="Delete timer"
                             onClick={() => deleteTimer(index)}
                           >
-                            Delete
+                            <Trash2 className="size-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="size-7"
                             aria-label="Move up"
                             onClick={() => moveTimer(index, -1)}
                           >
@@ -616,6 +645,7 @@ function Index() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="size-7"
                             aria-label="Move down"
                             onClick={() => moveTimer(index, 1)}
                           >
@@ -629,6 +659,7 @@ function Index() {
               </AnimatePresence>
 
             </section>
+
           </div>
 
           <AnimatePresence>
