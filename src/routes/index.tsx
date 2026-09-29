@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Coffee, ListPlus, Pencil, Play, RotateCcw, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Coffee,
+  ListPlus,
+  Pencil,
+  Play,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
 import WelcomeScreen from "@/components/WelcomeScreen";
@@ -40,6 +49,7 @@ export const Route = createFileRoute("/")({
 const STORAGE_KEYS = {
   name: "timerApp_userName",
   title: "timerApp_practiceTitle",
+  message: "timerApp_sessionMessage",
   timers: "timerApp_timers",
   timezone: "timerApp_userTimezone",
 };
@@ -78,6 +88,7 @@ function Index() {
   const [userName, setUserName] = useState("there");
   const [profileDraft, setProfileDraft] = useState("");
   const [practiceTitle, setPracticeTitle] = useState("Practice Time");
+  const [sessionMessage, setSessionMessage] = useState("Day 1");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [timers, setTimers] = useState<TimerBlock[]>([]);
   const [newTimerTitle, setNewTimerTitle] = useState("");
@@ -91,6 +102,7 @@ function Index() {
   const [userTimezone, setUserTimezone] = useState("UTC");
   const [showPlanCard, setShowPlanCard] = useState(true);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
+  const [showControlPanel, setShowControlPanel] = useState(true);
   const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
 
 
@@ -98,6 +110,7 @@ function Index() {
     const storedName = loadFromStorage(STORAGE_KEYS.name, "");
     setUserName(storedName || "there");
     setPracticeTitle(loadFromStorage(STORAGE_KEYS.title, "Practice Time"));
+    setSessionMessage(loadFromStorage(STORAGE_KEYS.message, "Day 1"));
     setUserTimezone(loadFromStorage(STORAGE_KEYS.timezone, getDefaultTimezone()));
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
@@ -125,9 +138,10 @@ function Index() {
     if (!hydrated || showWelcome) return;
     window.localStorage.setItem(STORAGE_KEYS.name, JSON.stringify(userName));
     window.localStorage.setItem(STORAGE_KEYS.title, JSON.stringify(practiceTitle));
+    window.localStorage.setItem(STORAGE_KEYS.message, JSON.stringify(sessionMessage));
     window.localStorage.setItem(STORAGE_KEYS.timezone, JSON.stringify(userTimezone));
     window.localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-  }, [hydrated, showWelcome, userName, practiceTitle, userTimezone, timers]);
+  }, [hydrated, showWelcome, userName, practiceTitle, sessionMessage, userTimezone, timers]);
 
   const saveProfile = () => {
     setUserName(profileDraft.trim() || "there");
@@ -319,19 +333,17 @@ function Index() {
           <div className="mx-auto flex w-full max-w-[1140px] flex-col gap-5">
 
             <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm px-6 py-4 shadow-soft">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex min-w-0 flex-1 items-start gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1">
                   {/* <div className="red-hat-lockup mt-1 shrink-0" aria-label="Red Hat">
                     <img src="/Red_Hat_logo.svg.webp" alt="Red Hat logo" />
                   </div> */}
-                  <div className="min-w-0">
-                    <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                      Welcome to <span className="font-bold text-foreground">Red Hat</span> Training
-                    </p>
-                    <h1 className="mt-1 whitespace-normal break-words text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
-                      {practiceTitle}
-                    </h1>
-                  </div>
+                  <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    Welcome to <span className="font-bold text-foreground">Red Hat</span> Training
+                  </p>
+                </div>
+                <div className="shrink-0">
+                  <LiveClock timezone={userTimezone} />
                 </div>
                 <Button
                   variant="ghost"
@@ -340,9 +352,22 @@ function Index() {
                   aria-expanded={isHeroExpanded}
                   onClick={() => setIsHeroExpanded((v) => !v)}
                 >
-                  {isHeroExpanded ? "▲" : "▼"}
+                  {isHeroExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={showControlPanel ? "Hide controls" : "Show controls"}
+                  aria-expanded={showControlPanel}
+                  onClick={() => setShowControlPanel((v) => !v)}
+                >
+                  {showControlPanel ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
                 </Button>
               </div>
+
+              <h1 className="mt-3 whitespace-normal break-words text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
+                {practiceTitle}
+              </h1>
 
               <motion.div
                 initial={false}
@@ -384,41 +409,56 @@ function Index() {
 
               </motion.div>
 
-              <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-soft">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={timersStarted ? togglePause : startTimers}
-                  disabled={timers.length === 0}
-                >
-                  {!timersStarted && <Play className="size-3.5" />}
-                  {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
-                </Button>
-                <Button variant="destructive" size="sm" className="rounded-xl" onClick={resetTimers}>
-                  <RotateCcw className="size-3.5" />
-                  Reset
-                </Button>
-                <Button variant="outline" size="sm" className="rounded-xl" onClick={openTeaBreak}>
-                  <Coffee className="size-3.5" />
-                  Take a Break
-                </Button>
-
-                <div className="mx-auto">
-                  <LiveClock timezone={userTimezone} />
+              <motion.div
+                initial={false}
+                animate={{ height: showControlPanel ? "auto" : 0, opacity: showControlPanel ? 1 : 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+              <div className="mt-5 grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={timersStarted ? togglePause : startTimers}
+                    disabled={timers.length === 0}
+                  >
+                    {!timersStarted && <Play className="size-3.5" />}
+                    {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
+                  </Button>
+                  <Button variant="destructive" size="sm" className="rounded-xl" onClick={resetTimers}>
+                    <RotateCcw className="size-3.5" />
+                    Reset
+                  </Button>
+                  <Button variant="outline" size="sm" className="rounded-xl" onClick={openTeaBreak}>
+                    <Coffee className="size-3.5" />
+                    Take a Break
+                  </Button>
                 </div>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="ml-auto rounded-xl"
-                  aria-expanded={showPlanCard}
-                  onClick={() => setShowPlanCard((v) => !v)}
-                >
-                  {!showPlanCard && <ListPlus className="size-3.5" />}
-                  {showPlanCard ? "Hide plan panel" : "Plan / Add block"}
-                </Button>
+                <Input
+                  value={sessionMessage}
+                  onChange={(event) => setSessionMessage(event.target.value)}
+                  aria-label="Session message"
+                  placeholder="Day 1 / Morning Tea Break"
+                  className="h-9 w-full min-w-[190px] rounded-xl border-transparent bg-muted/60 px-3 text-center text-sm font-medium shadow-none focus-visible:border-ring focus-visible:bg-background sm:w-[280px]"
+                />
+
+                <div className="flex justify-start sm:justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-xl"
+                    aria-expanded={showPlanCard}
+                    onClick={() => setShowPlanCard((v) => !v)}
+                  >
+                    {!showPlanCard && <ListPlus className="size-3.5" />}
+                    {showPlanCard ? "Hide plan panel" : "Plan / Add block"}
+                  </Button>
+                </div>
               </div>
+              </motion.div>
 
               <p className="group ml-auto mt-3 w-fit cursor-default rounded-full border border-border/70 bg-card/60 px-3 py-1 font-serif text-[13px] italic tracking-[0.1em] text-foreground/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card/85 hover:text-primary hover:tracking-[0.15em] motion-reduce:transition-none">
                 Instructor <span className="font-semibold not-italic text-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none">Manas Kumar</span>
