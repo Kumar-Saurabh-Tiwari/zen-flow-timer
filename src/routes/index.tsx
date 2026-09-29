@@ -320,9 +320,9 @@ function Index() {
             <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm px-6 py-4 shadow-soft">
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
-                  <div className="red-hat-lockup mt-1 shrink-0" aria-label="Red Hat">
+                  {/* <div className="red-hat-lockup mt-1 shrink-0" aria-label="Red Hat">
                     <img src="/Red_Hat_logo.svg.webp" alt="Red Hat logo" />
-                  </div>
+                  </div> */}
                   <div className="min-w-0">
                     <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                       Welcome to <span className="font-bold text-foreground">Red Hat</span> Training
