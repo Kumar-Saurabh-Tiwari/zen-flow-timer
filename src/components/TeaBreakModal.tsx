@@ -94,174 +94,122 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
       role="dialog"
       aria-modal="true"
       aria-label="Tea break setup"
-      className="fixed inset-0 z-50 grid place-items-center bg-background/85 p-6 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-background/70 p-3 backdrop-blur-lg sm:p-6"
     >
       <motion.div
         initial={{ scale: 0.96, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.96, y: 20 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full max-w-lg rounded-3xl border border-border bg-card p-8 text-center shadow-soft"
+        className={`break-dialog my-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto rounded-3xl border border-border text-center shadow-soft backdrop-blur-xl sm:max-h-[calc(100dvh-3rem)] ${phase === "setup" ? "max-w-4xl p-5 sm:p-8" : "max-w-lg p-4 sm:p-6"}`}
       >
-        {phase === "setup" && (
-          <>
-            {selectedPreset === "Tea Break 🍵" && (
-              <div className="relative mx-auto mb-6 h-55 w-55">
-                <img
-                  src="/tea-break1.gif"
-                  alt="Stretching person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-            {selectedPreset === "Herbal Tea Break 🍵" && (
-              <div className="relative mx-auto mb-6 h-50 w-50">
-                <img
-                  src="/herbal-tea.gif"
-                  alt="Stretching person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-            {selectedPreset === "Coffee Break ☕" && (
-              <div className="relative mx-auto mb-6 h-50 w-50">
-                <img
-                  src="/sip-coffee.gif"
-                  alt="Stretching person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-            {selectedPreset === "Coffee Timer ☕" && (
-              <div className="relative mx-auto mb-6 h-50 w-50">
-                <img
-                  src="/coffee-timer.gif"
-                  alt="Stretching person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-            {selectedPreset === "Lunch Break 🥗" && (
-              <div className="relative mx-auto mb-6 h-55 w-55">
-                <img
-                  src="/launch-time.gif"
-                  alt="Lunch person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-            {selectedPreset === "Relax Break" && (
-              <div className="relative mx-auto mb-6 h-50 w-50">
-                <img
-                  src="/custom-break.gif"
-                  alt="Stretching person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-            {selectedPreset === "Study Break" && (
-              <div className="relative mx-auto mb-6 h-50 w-50">
-                <img
-                  src="/focus.gif"
-                  alt="Stretching person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-            {selectedPreset === "Focus Break" && (
-              <div className="relative mx-auto mb-6 h-50 w-50">
-                <img
-                  src="/focus2.gif"
-                  alt="Stretching person"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            )}
-          </>
-        )}
-
         {phase === "setup" ? (
-          <>
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground">
-              Choose your break
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Pick a preset, customize the label, and choose the duration in minutes.
-            </p>
+          <div className="grid items-center gap-6 text-left md:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)] md:gap-10">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                Choose your break
+              </h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground sm:mt-3">
+                Pick a preset, customize the label, and choose the duration in minutes.
+              </p>
 
-            <div className="preset-chips-grid mt-6">
-              {PRESET_TITLES.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  className={`chip ${selectedPreset === preset ? "active" : ""}`}
-                  onClick={() => selectPreset(preset)}
-                >
-                  {preset}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 grid gap-4 text-left sm:grid-cols-[2fr_1fr]">
-              <div className="grid gap-2">
-                <Label htmlFor="break-title">Break title</Label>
-                <Input
-                  id="break-title"
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value);
-                    setSelectedPreset("");
-                  }}
-                  placeholder="Custom break title"
-                />
+              <div className="preset-chips-grid mt-4 sm:mt-6">
+                {PRESET_TITLES.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={`chip ${selectedPreset === preset ? "active" : ""}`}
+                    onClick={() => selectPreset(preset)}
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="break-minutes">Minutes</Label>
-                <Input
-                  id="break-minutes"
-                  type="number"
-                  min="0"
-                  value={minutes}
-                  onChange={(e) => handleMinutesChange(e.target.value)}
-                  onFocus={(e) => {
-                    if (minutes === "" || minutes === "0" || minutes === "00") {
-                      setMinutes("");
-                    }
-                  }}
-                  placeholder="0"
-                />
+
+              <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-[2fr_1fr] sm:gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="break-title">Break title</Label>
+                  <Input
+                    id="break-title"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setSelectedPreset("");
+                    }}
+                    placeholder="Custom break title"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="break-minutes">Minutes</Label>
+                  <Input
+                    id="break-minutes"
+                    type="number"
+                    min="0"
+                    value={minutes}
+                    onChange={(e) => handleMinutesChange(e.target.value)}
+                    onFocus={() => {
+                      if (minutes === "" || minutes === "0" || minutes === "00") {
+                        setMinutes("");
+                      }
+                    }}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <p className="mt-3 text-sm font-medium text-foreground sm:mt-4">
+                Break duration: {formattedDuration}
+              </p>
+
+              <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
+                <Button className="w-full sm:w-auto" onClick={startBreak} disabled={duration <= 0}>
+                  Start Break
+                </Button>
+                <Button variant="secondary" className="w-full sm:w-auto" onClick={onCancel}>
+                  Cancel
+                </Button>
               </div>
             </div>
 
-            <p className="mx-auto mt-4 max-w-sm text-sm font-medium text-foreground">
-              Break duration: {formattedDuration}
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Button
-                className="w-full sm:w-auto"
-                onClick={startBreak}
-                disabled={duration <= 0}
-              >
-                Start Break
-              </Button>
-              <Button variant="secondary" className="w-full sm:w-auto" onClick={onCancel}>
-                Cancel
-              </Button>
+            <div className="break-preview-pane order-first flex h-60 items-center justify-center overflow-hidden rounded-2xl p-0 md:order-last md:h-72">
+              {selectedPreset === "Tea Break 🍵" && (
+                <img src="/tea-break1.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              )}
+              {selectedPreset === "Herbal Tea Break 🍵" && (
+                <img src="/herbal-tea.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              )}
+              {selectedPreset === "Coffee Break ☕" && (
+                <img src="/sip-coffee.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              )}
+              {selectedPreset === "Coffee Timer ☕" && (
+                <img src="/coffee-timer.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              )}
+              {selectedPreset === "Lunch Break 🥗" && (
+                <img src="/launch-time.gif" alt="Lunch person" className="h-full w-full object-contain" />
+              )}
+              {selectedPreset === "Relax Break" && (
+                <img src="/custom-break.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              )}
+              {selectedPreset === "Study Break" && (
+                <img src="/focus.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              )}
+              {selectedPreset === "Focus Break" && (
+                <img src="/focus2.gif" alt="Stretching person" className="h-full w-full object-contain" />
+              )}
             </div>
-          </>
+          </div>
         ) : (
           <>
-            <h2 className="text-4xl font-semibold tracking-tight text-foreground">
+            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               Enjoy your {activeLabel}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
               Your break is active. Relax, breathe, and the timer will return you to practice when finished.
             </p>
 
-            <div className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-soft">
+            <div className="break-active-panel mt-5 rounded-2xl border border-border p-3 sm:mt-6 sm:p-4">
               {selectedPreset === "Tea Break 🍵" && (
-                <div className="relative mx-auto mb-6 h-60 w-60">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/tea-break1.gif"
                     alt="Stretching person"
@@ -270,7 +218,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 </div>
               )}
               {selectedPreset === "Herbal Tea Break 🍵" && (
-                <div className="relative mx-auto mb-6 h-60 w-60">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/herbal-tea.gif"
                     alt="Stretching person"
@@ -279,7 +227,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 </div>
               )}
               {selectedPreset === "Coffee Break ☕" && (
-                <div className="relative mx-auto mb-6 h-60 w-60">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/sip-coffee.gif"
                     alt="Stretching person"
@@ -288,7 +236,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 </div>
               )}
               {selectedPreset === "Coffee Timer ☕" && (
-                <div className="relative mx-auto mb-6 h-60 w-60">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/coffee-timer.gif"
                     alt="Stretching person"
@@ -297,7 +245,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 </div>
               )}
               {selectedPreset === "Lunch Break 🥗" && (
-                <div className="relative mx-auto mb-6 h-60 w-60">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/launch-time.gif"
                     alt="Lunch person"
@@ -306,7 +254,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 </div>
               )}
               {selectedPreset === "Relax Break" && (
-                <div className="relative mx-auto mb-6 h-60 w-60">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/custom-break.gif"
                     alt="Stretching person"
@@ -315,7 +263,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 </div>
               )}
               {selectedPreset === "Study Break" && (
-                <div className="relative mx-auto mb-6 h-50 w-50">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/focus.gif"
                     alt="Stretching person"
@@ -324,7 +272,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 </div>
               )}
               {selectedPreset === "Focus Break" && (
-                <div className="relative mx-auto mb-6 h-50 w-50">
+                <div className="relative mx-auto mb-3 h-64 w-64">
                   <img
                     src="/focus2.gif"
                     alt="Stretching person"
@@ -338,7 +286,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:justify-center">
               <Button className="w-full sm:w-auto" onClick={onBreakComplete}>
                 End Break Early
               </Button>

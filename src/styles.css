@@ -169,6 +169,43 @@
   gap: 0.75rem;
 }
 
+.red-hat-lockup {
+  display: grid;
+  place-items: center;
+  transform-origin: center bottom;
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+.red-hat-lockup:hover {
+  transform: perspective(260px) rotateX(4deg) rotateY(-9deg) translateY(-2px);
+  filter: drop-shadow(0 8px 10px oklch(0.45 0.06 55 / 0.2));
+}
+
+.red-hat-lockup img {
+  display: block;
+  height: 2.25rem;
+  width: 2.25rem;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .break-dialog {
+    animation: none;
+  }
+
+  .break-active-panel {
+    animation: none;
+  }
+
+  .red-hat-lockup {
+    transition: none;
+  }
+
+  .red-hat-lockup:hover {
+    transform: none;
+  }
+}
+
 .chip {
   border: 1px solid var(--color-border);
   background: var(--color-muted);
@@ -199,6 +236,55 @@
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--color-primary);
+}
+
+.break-preview-pane {
+  /* background-color: oklch(0.995 0.003 90 / 0.55); */
+  background-image: none;
+}
+
+.break-preview-pane img {
+  mix-blend-mode: multiply;
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.break-active-panel {
+  background: oklch(1 0 0);
+  box-shadow: 0 8px 18px -16px oklch(0.45 0.06 55 / 0.48);
+}
+
+.break-active-panel img {
+  mix-blend-mode: multiply;
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.break-dialog {
+  background: oklch(1 0 0);
+  backdrop-filter: blur(16px) saturate(1.8);
+  -webkit-backdrop-filter: blur(16px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  will-change: border-color, box-shadow;
+  animation: dialogBorderGlow 8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes dialogBorderGlow {
+  0%,
+  100% {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 18px 40px -24px oklch(0.45 0.06 55 / 0.32);
+  }
+
+  25%,
+  75% {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 18px 41px -23px oklch(0.52 0.08 55 / 0.36);
+  }
+
+  50% {
+    border-color: oklch(0.82 0.1 75 / 0.52);
+    box-shadow: 0 18px 42px -22px oklch(0.62 0.11 45 / 0.42);
+  }
 }
 
 @theme inline {
