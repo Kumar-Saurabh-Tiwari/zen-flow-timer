@@ -78,7 +78,7 @@ export default function LiveClock({ timezone }: { timezone: string }) {
         </DialogHeader>
         <div className="grid gap-6 p-5 sm:grid-cols-[auto_1fr]">
           <div className="min-w-0">
-            <Calendar mode="single" required selected={selected} onSelect={selectDay} month={month} onMonthChange={setMonth} today={today} captionLayout="dropdown" startMonth={new Date(1970, 0)} endMonth={new Date(2100, 11)} className="mx-auto bg-transparent" modifiers={{ event: events.filter((event) => event.timezone === timezone).map((event) => wallDate(event.date)) }} modifiersClassNames={{ event: "calendar-event-day" }} />
+            <Calendar mode="single" required selected={selected} onSelect={selectDay} {...(month ? { month } : {})} onMonthChange={setMonth} {...(today ? { today } : {})} captionLayout="dropdown" startMonth={new Date(1970, 0)} endMonth={new Date(2100, 11)} className="mx-auto bg-transparent" modifiers={{ event: events.filter((event) => event.timezone === timezone).map((event) => wallDate(event.date)) }} modifiersClassNames={{ event: "calendar-event-day" }} />
             <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => { if (today) { setSelected(today); setMonth(today); resetDraft(); } }}>Today</Button>
           </div>
           <section className="min-w-0 border-t border-border pt-5 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">

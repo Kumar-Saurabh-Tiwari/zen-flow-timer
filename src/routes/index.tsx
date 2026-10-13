@@ -571,7 +571,7 @@ function Index() {
                           <Timer
                             id={timer.id}
                             title={timer.title}
-                            headingSize={timer.headingSize}
+                            headingSize={timer.headingSize ?? 24}
                             duration={timer.duration}
                             isActive={timer.isActive}
                             isPaused={isPaused}
