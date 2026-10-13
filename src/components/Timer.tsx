@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 interface TimerProps {
   id: string;
   title: string;
+  headingSize?: number;
   duration: number;
   isActive: boolean;
   isPaused?: boolean;
@@ -23,6 +24,7 @@ const formatTime = (total: number) => {
 export default function Timer({
   id,
   title,
+  headingSize = 24,
   duration,
   isActive,
   isPaused = false,
@@ -85,7 +87,7 @@ export default function Timer({
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex flex-1 min-w-0 items-center gap-5">
+    <div className="flex flex-1 min-w-0 items-center gap-4 max-sm:flex-col max-sm:items-start">
       <div className="relative flex h-[130px] w-[130px] min-w-[130px] shrink-0 items-center justify-center">
         <svg
           viewBox={`0 0 ${size} ${size}`}
@@ -124,9 +126,9 @@ export default function Timer({
         </span>
       </div>
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 w-full flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-2xl font-medium text-foreground">{title}</p>
+          <p className="custom-heading min-w-0 break-words font-medium text-foreground" style={{ fontSize: `${headingSize}px` }}>{title}</p>
           {isActive && (
             <span
               className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${

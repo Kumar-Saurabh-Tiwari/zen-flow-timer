@@ -64,7 +64,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
 
   const startBreak = () => {
     if (duration <= 0) return;
-    setActiveLabel(title.trim() || PRESET_TITLES[0]);
+    setActiveLabel(title?.trim() || PRESET_TITLES[0]);
     setRemainingSeconds(duration);
     completedRef.current = false;
     setPhase("active");
