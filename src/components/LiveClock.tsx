@@ -1,131 +1,104 @@
 import { useEffect, useState } from "react";
+import { CalendarDays, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { formatInTimezone } from "@/lib/timezones";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { calendarDateKey, eventsForDay, type CalendarEvent } from "@/lib/customization";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+const EVENTS_KEY = "timerApp_calendarEvents";
+const wallDate = (key: string) => {
+  const [year = 2026, month = 1, day = 1] = key.split("-").map(Number);
+  return new Date(year, month - 1, day, 12);
+};
+const wallKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
 export default function LiveClock({ timezone }: { timezone: string }) {
   const [now, setNow] = useState<Date | null>(null);
-
-  const formatDate = (date: Date) => {
-    try {
-      return new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone,
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }).format(date);
-    } catch {
-      return date.toLocaleDateString();
-    }
-  };
-
-  const dateParts = now
-    ? new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone,
-        day: "numeric",
-        month: "numeric",
-        year: "numeric",
-      }).formatToParts(now)
-    : [];
-  const calendarDay = Number(dateParts.find((part) => part.type === "day")?.value ?? 1);
-  const calendarMonth = Number(dateParts.find((part) => part.type === "month")?.value ?? 1);
-  const calendarYear = Number(dateParts.find((part) => part.type === "year")?.value ?? 2026);
-  const monthLabel = new Intl.DateTimeFormat(undefined, {
-    timeZone: timezone,
-    month: "long",
-    year: "numeric",
-  }).format(now ?? new Date());
-  const daysInMonth = new Date(Date.UTC(calendarYear, calendarMonth, 0)).getUTCDate();
-  const firstDayOffset = new Date(Date.UTC(calendarYear, calendarMonth - 1, 1)).getUTCDay();
-  const calendarCells = Array.from(
-    { length: firstDayOffset + daysInMonth },
-    (_, index) => (index < firstDayOffset ? null : index - firstDayOffset + 1),
-  );
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<Date>();
+  const [month, setMonth] = useState<Date>();
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [title, setTitle] = useState("");
+  const [time, setTime] = useState("09:00");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const todayKey = now ? calendarDateKey(now, timezone) : "";
+  const today = todayKey ? wallDate(todayKey) : undefined;
+  const selectedKey = selected ? wallKey(selected) : todayKey;
+  const dayEvents = eventsForDay(events, selectedKey, timezone);
 
   useEffect(() => {
     setNow(new Date());
     const interval = setInterval(() => setNow(new Date()), 1000);
+    try {
+      const stored = JSON.parse(localStorage.getItem(EVENTS_KEY) ?? "[]");
+      if (Array.isArray(stored)) setEvents(stored.filter((event) => event && typeof event.id === "string" && typeof event.date === "string" && typeof event.timezone === "string" && typeof event.title === "string" && typeof event.time === "string"));
+    } catch { /* Keep an empty calendar if saved data is unavailable. */ }
+    setLoaded(true);
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (loaded) localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+  }, [events, loaded]);
+
+  const resetDraft = () => { setTitle(""); setTime("09:00"); setEditingId(null); };
+  const selectDay = (date: Date | undefined) => { if (date) { setSelected(date); resetDraft(); } };
+  const saveEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !selectedKey || !time) return;
+    const event = { id: editingId ?? crypto.randomUUID(), date: selectedKey, timezone, title: title.trim(), time };
+    setEvents((prev) => editingId ? prev.map((item) => item.id === editingId ? event : item) : [...prev, event]);
+    resetDraft();
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={(value) => {
+      setOpen(value);
+      if (value) {
+        const date = wallDate(calendarDateKey(new Date(), timezone));
+        setSelected(date); setMonth(date); resetDraft();
+      }
+    }}>
       <DialogTrigger asChild>
-        <button
-          type="button"
-          className="group inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-[15px] font-medium tabular-nums text-muted-foreground shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-primary/40 hover:bg-card hover:text-foreground hover:shadow-md motion-reduce:transition-none"
-          aria-label="Open date and time details"
-        >
-          <span className="size-1.5 animate-pulse rounded-full bg-primary" />
-          <span className="font-sans text-sm font-medium tracking-tight tabular-nums text-foreground sm:text-base">
-            {now ? formatInTimezone(now, timezone) : "--:--:--"}
-          </span>
-          <span className="font-sans text-xs font-medium tabular-nums tracking-tight text-foreground/65 sm:text-sm">
-            {now ? formatDate(now) : "--- --, ----"}
-          </span>
-          <span className="font-sans text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/55">
-            {timezone.split("/").pop()?.replace(/_/g, " ")}
-          </span>
-        </button>
+        <Button variant="outline" aria-label="Open date and time details" className="h-auto max-w-full flex-wrap gap-2 bg-card/70 px-3 py-2">
+          <CalendarDays className="size-4 text-primary" />
+          <span className="font-medium tabular-nums text-foreground">{now ? formatInTimezone(now, timezone) : "--:--:--"}</span>
+          <span className="text-xs text-muted-foreground">{now ? new Intl.DateTimeFormat("en-US", { timeZone: timezone, month: "short", day: "numeric", year: "numeric" }).format(now) : "Loading date"}</span>
+          <span className="text-xs text-muted-foreground">{timezone.split("/").pop()?.replace(/_/g, " ")}</span>
+        </Button>
       </DialogTrigger>
-
-      <DialogContent className="max-h-[90vh] overflow-hidden rounded-[28px] border-border/80 bg-card p-0 shadow-2xl sm:max-w-md">
-        <div className="bg-gradient-warm px-6 py-5">
-          <DialogHeader>
-            <div className="flex items-center justify-between gap-4 pr-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Local time details
-              </p>
-              <span className="rounded-full border border-border/70 bg-card/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground/60">
-                Live
-              </span>
-            </div>
-            <DialogTitle className="mt-4 font-sans text-3xl font-medium leading-none tabular-nums tracking-tight text-foreground">
-              {now ? formatInTimezone(now, timezone) : "--:--:--"}
-            </DialogTitle>
-            <DialogDescription className="mt-2 text-sm text-foreground/65">
-              {now ? formatDate(now) : "Loading date"} <span className="px-1">·</span> {timezone.replace(/_/g, " ")}
-            </DialogDescription>
-          </DialogHeader>
-        </div>
-
-        <div className="p-5">
-          <div className="rounded-2xl border border-border bg-background/60 p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h3 className="font-sans text-lg font-semibold tracking-tight text-foreground">{monthLabel}</h3>
-              <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                Today
-              </span>
-            </div>
-            <div className="mt-5 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-                <span key={`${day}-${index}`}>{day}</span>
-              ))}
-            </div>
-            <div className="mt-2 grid grid-cols-7 gap-1 text-center text-sm">
-              {calendarCells.map((day, index) => (
-                <span
-                  key={`${day ?? "empty"}-${index}`}
-                  className={`grid h-9 place-items-center rounded-full tabular-nums transition-colors ${
-                    day === calendarDay
-                      ? "bg-primary font-semibold text-primary-foreground shadow-sm"
-                      : day
-                        ? "text-foreground/70 hover:bg-muted"
-                        : ""
-                  }`}
-                >
-                  {day}
-                </span>
-              ))}
-            </div>
+      <DialogContent className="max-h-[90vh] overflow-y-auto bg-card p-0 sm:max-w-[760px]">
+        <DialogHeader className="border-b border-border px-6 py-5 text-left">
+          <DialogTitle className="flex items-center gap-2 text-xl"><CalendarDays className="size-5 text-primary" />Calendar & events</DialogTitle>
+          <DialogDescription>{timezone.replace(/_/g, " ")} · <span className="tabular-nums">{now ? formatInTimezone(now, timezone) : "--:--:--"}</span></DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-6 p-5 sm:grid-cols-[auto_1fr]">
+          <div className="min-w-0">
+            <Calendar mode="single" required selected={selected} onSelect={selectDay} {...(month ? { month } : {})} onMonthChange={setMonth} {...(today ? { today } : {})} captionLayout="dropdown" startMonth={new Date(1970, 0)} endMonth={new Date(2100, 11)} className="mx-auto bg-transparent" modifiers={{ event: events.filter((event) => event.timezone === timezone).map((event) => wallDate(event.date)) }} modifiersClassNames={{ event: "calendar-event-day" }} />
+            <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => { if (today) { setSelected(today); setMonth(today); resetDraft(); } }}>Today</Button>
           </div>
-
+          <section className="min-w-0 border-t border-border pt-5 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+            <h3 className="text-base font-semibold">{selected ? new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(selected) : "Day events"}</h3>
+            <p className="mt-1 text-xs text-muted-foreground">{dayEvents.length} event{dayEvents.length === 1 ? "" : "s"} · {timezone.split("/").pop()?.replace(/_/g, " ")}</p>
+            <div className="my-4 max-h-48 space-y-2 overflow-y-auto">
+              {dayEvents.length === 0 && <p className="py-4 text-sm text-muted-foreground">No events planned.</p>}
+              {dayEvents.map((event) => <div key={event.id} className="flex items-start gap-2 border-b border-border py-2">
+                <span className="mt-1 shrink-0 text-xs font-medium tabular-nums text-primary">{event.time}</span>
+                <span className="min-w-0 flex-1 break-words text-sm">{event.title}</span>
+                <Button variant="ghost" size="icon" className="size-7 shrink-0" aria-label={`Edit event ${event.title}`} onClick={() => { setEditingId(event.id); setTitle(event.title); setTime(event.time); }}><Pencil /></Button>
+                <Button variant="ghost" size="icon" className="size-7 shrink-0 text-destructive" aria-label={`Delete event ${event.title}`} onClick={() => { setEvents((prev) => prev.filter((item) => item.id !== event.id)); if (editingId === event.id) resetDraft(); }}><Trash2 /></Button>
+              </div>)}
+            </div>
+            <form onSubmit={saveEvent} className="grid gap-3 border-t border-border pt-4">
+              <div className="grid gap-1.5"><Label htmlFor="event-title" className="text-sm">Event title</Label><Input id="event-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Practice, meeting, or break" required maxLength={160} /></div>
+              <div className="grid gap-1.5"><Label htmlFor="event-time" className="text-sm">Local time</Label><Input id="event-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required /></div>
+              <div className="flex gap-2"><Button type="submit" disabled={!title.trim()}>{editingId ? <Check /> : <Plus />}{editingId ? "Save event" : "Add event"}</Button>{editingId && <Button type="button" variant="ghost" size="icon" aria-label="Cancel event edit" onClick={resetDraft}><X /></Button>}</div>
+            </form>
+          </section>
         </div>
       </DialogContent>
     </Dialog>
