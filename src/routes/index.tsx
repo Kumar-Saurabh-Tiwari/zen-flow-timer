@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronDown,
-  ChevronUp,
+  SlidersHorizontal,
+  PanelTop,
   Coffee,
   ListPlus,
   Pencil,
@@ -14,7 +14,9 @@ import {
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
 import WelcomeScreen from "@/components/WelcomeScreen";
-import TimezoneSelect from "@/components/TimezoneSelect";
+import SettingsSidebar from "@/components/SettingsSidebar";
+import HeadingSizeControl from "@/components/HeadingSizeControl";
+import { headingSize } from "@/lib/customization";
 import LiveClock from "@/components/LiveClock";
 import TeaBreakModal from "@/components/TeaBreakModal";
 
@@ -52,11 +54,14 @@ const STORAGE_KEYS = {
   message: "timerApp_sessionMessage",
   timers: "timerApp_timers",
   timezone: "timerApp_userTimezone",
+  headingSize: "timerApp_headingSize",
+  timerHeadingSize: "timerApp_timerHeadingSize",
 };
 
 interface TimerBlock {
   id: string;
   title: string;
+  headingSize?: number;
   duration: number;
   isActive: boolean;
   isExpired: boolean;
@@ -101,7 +106,8 @@ function Index() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [userTimezone, setUserTimezone] = useState("UTC");
   const [showPlanCard, setShowPlanCard] = useState(true);
-  const [isHeroExpanded, setIsHeroExpanded] = useState(false);
+  const [profileHeadingSize, setProfileHeadingSize] = useState(28);
+  const [newTimerHeadingSize, setNewTimerHeadingSize] = useState(24);
   const [showControlPanel, setShowControlPanel] = useState(true);
   const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
 
@@ -111,11 +117,14 @@ function Index() {
     setUserName(storedName || "there");
     setPracticeTitle(loadFromStorage(STORAGE_KEYS.title, "Practice Time"));
     setSessionMessage(loadFromStorage(STORAGE_KEYS.message, "Day 1"));
+    setProfileHeadingSize(headingSize(loadFromStorage(STORAGE_KEYS.headingSize, 28)));
+    setNewTimerHeadingSize(headingSize(loadFromStorage(STORAGE_KEYS.timerHeadingSize, 24), 24));
     setUserTimezone(loadFromStorage(STORAGE_KEYS.timezone, getDefaultTimezone()));
     setTimers(
       loadFromStorage<TimerBlock[]>(STORAGE_KEYS.timers, []).map((t) => ({
         ...t,
         id: t.id ?? makeId(),
+        headingSize: headingSize(t.headingSize, 24),
         isActive: false,
         isExpired: false,
         editing: false,
@@ -140,8 +149,10 @@ function Index() {
     window.localStorage.setItem(STORAGE_KEYS.title, JSON.stringify(practiceTitle));
     window.localStorage.setItem(STORAGE_KEYS.message, JSON.stringify(sessionMessage));
     window.localStorage.setItem(STORAGE_KEYS.timezone, JSON.stringify(userTimezone));
+    window.localStorage.setItem(STORAGE_KEYS.headingSize, JSON.stringify(profileHeadingSize));
+    window.localStorage.setItem(STORAGE_KEYS.timerHeadingSize, JSON.stringify(newTimerHeadingSize));
     window.localStorage.setItem(STORAGE_KEYS.timers, JSON.stringify(timers));
-  }, [hydrated, showWelcome, userName, practiceTitle, sessionMessage, userTimezone, timers]);
+  }, [hydrated, showWelcome, userName, practiceTitle, sessionMessage, userTimezone, timers, profileHeadingSize, newTimerHeadingSize]);
 
   const saveProfile = () => {
     setUserName(profileDraft.trim() || "there");
@@ -156,6 +167,7 @@ function Index() {
       {
         id: makeId(),
         title: newTimerTitle.trim(),
+        headingSize: newTimerHeadingSize,
 
         duration,
         isActive: false,
@@ -298,7 +310,10 @@ function Index() {
     if (nextIndex < 0 || nextIndex >= timers.length) return;
     setTimers((prev) => {
       const copy = [...prev];
-      [copy[index], copy[nextIndex]] = [copy[nextIndex]!, copy[index]!];
+      const current = copy[index];
+      const next = copy[nextIndex];
+      if (!current || !next) return prev;
+      [copy[index], copy[nextIndex]] = [next, current];
       return copy;
     });
     if (activeTimerIndex === index) {
@@ -345,69 +360,19 @@ function Index() {
                 <div className="shrink-0">
                   <LiveClock timezone={userTimezone} />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={isHeroExpanded ? "Collapse header" : "Expand header"}
-                  aria-expanded={isHeroExpanded}
-                  onClick={() => setIsHeroExpanded((v) => !v)}
-                >
-                  {isHeroExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={showControlPanel ? "Hide controls" : "Show controls"}
-                  aria-expanded={showControlPanel}
-                  onClick={() => setShowControlPanel((v) => !v)}
-                >
-                  {showControlPanel ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                <Button variant="outline" onClick={() => { setProfileDraft(userName); setIsEditingProfile(true); }} aria-expanded={isEditingProfile}>
+                  <SlidersHorizontal className="size-4" /> Settings
                 </Button>
               </div>
-
-              <h1 className="mt-3 whitespace-normal break-words text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
-                {practiceTitle}
-              </h1>
-
-              <motion.div
-                initial={false}
-                animate={{
-                  height: isHeroExpanded ? "auto" : 0,
-                  opacity: isHeroExpanded ? 1 : 0,
-                }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="overflow-hidden"
-              >
-                {/* <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Create calm, intentional study or workout sessions and keep your flow going,
-              one block at a time.
-            </p> */}
-
-                <div className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl bg-card/70 p-4 backdrop-blur">
-                  <div className="grid size-12 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
-                    {profileAvatar}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-base font-medium text-foreground">
-                      Welcome back, {userName || "friend"}
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      {timers.length} block{timers.length === 1 ? "" : "s"} ·{" "}
-                      {fmt(totalDuration)} total · {userTimezone.replace(/_/g, " ")}
-                    </p>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setProfileDraft(userName);
-                      setIsEditingProfile((v) => !v);
-                    }}
-                  >
-                    {isEditingProfile ? "Close" : "Edit profile"}
-                  </Button>
-                </div>
-
-              </motion.div>
+              <h1 className="custom-heading mt-4 break-words font-semibold text-foreground" style={{ fontSize: `${profileHeadingSize}px` }}>{practiceTitle}</h1>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <span className="grid size-7 place-items-center rounded-full bg-primary/15 text-xs font-semibold text-primary">{profileAvatar}</span>
+                <span>{userName}</span><span aria-hidden="true">·</span>
+                <span>{timers.length} blocks · {fmt(totalDuration)} total</span>
+                <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setShowControlPanel((v) => !v)} aria-expanded={showControlPanel}>
+                  <PanelTop className="size-4" />{showControlPanel ? "Hide session controls" : "Show session controls"}
+                </Button>
+              </div>
 
               <motion.div
                 initial={false}
@@ -465,55 +430,18 @@ function Index() {
               </p>
             </section>
 
-            {isEditingProfile && (
-              <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
-                <h3 className="text-lg font-medium text-foreground">Profile settings</h3>
-                <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={profileDraft}
-                      onChange={(e) => setProfileDraft(e.target.value)}
-                      placeholder="Enter your name"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="heading">Heading</Label>
-                    <Input
-                      id="heading"
-                      value={practiceTitle}
-                      onChange={(e) => setPracticeTitle(e.target.value)}
-                      placeholder="Practice title"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="timezone">Timezone</Label>
-                    <TimezoneSelect
-                      id="timezone"
-                      value={userTimezone}
-                      onChange={setUserTimezone}
-                    />
-                  </div>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <Button onClick={saveProfile}>Save profile</Button>
-                  <Button variant="ghost" onClick={() => setIsEditingProfile(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="sm:ml-auto"
-                    onClick={() => {
-                      setIsEditingProfile(false);
-                      setShowWelcome(true);
-                    }}
-                  >
-                    Re-run onboarding
-                  </Button>
-                </div>
-              </section>
-            )}
+            <SettingsSidebar
+              open={isEditingProfile} onOpenChange={setIsEditingProfile}
+              name={profileDraft} onNameChange={setProfileDraft}
+              heading={practiceTitle} onHeadingChange={setPracticeTitle}
+              timezone={userTimezone} onTimezoneChange={setUserTimezone}
+              headingSize={profileHeadingSize} onHeadingSizeChange={setProfileHeadingSize}
+              timerHeadingSize={newTimerHeadingSize} onTimerHeadingSizeChange={setNewTimerHeadingSize}
+              showControls={showControlPanel} onShowControlsChange={setShowControlPanel}
+              showPlan={showPlanCard} onShowPlanChange={setShowPlanCard}
+              onSave={saveProfile}
+              onOnboarding={() => { setIsEditingProfile(false); setShowWelcome(true); }}
+            />
 
             <motion.div
               initial={false}
@@ -531,7 +459,7 @@ function Index() {
                       Create a new practice block
                     </h3>
                   </div>
-                  <Button onClick={addTimer}>Add timer</Button>
+                  <Button onClick={addTimer} disabled={!newTimerTitle.trim() || newTimerMinutes <= 0}><ListPlus className="size-4" />Add timer</Button>
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-[3fr_1fr]">
@@ -562,6 +490,7 @@ function Index() {
                   </div>
                 </div>
 
+                <div className="mt-5 max-w-sm"><HeadingSizeControl label="Timer heading size" value={newTimerHeadingSize} onChange={setNewTimerHeadingSize} /></div>
               </section>
             </motion.div>
 
@@ -633,14 +562,16 @@ function Index() {
                           }
                         />
                         <Button onClick={() => saveTimer(index)}>Save</Button>
+                        <div className="sm:col-span-3 max-w-sm"><HeadingSizeControl label="Timer heading size" value={timer.headingSize ?? 24} onChange={(size) => setTimers((prev) => prev.map((item) => item.id === timer.id ? { ...item, headingSize: size } : item))} /></div>
                       </div>
 
                     ) : (
                       <div className="flex flex-wrap items-center gap-4">
-                        <div className="min-w-0 flex-1 pr-36">
+                        <div className="min-w-0 w-full flex-1 pt-10 sm:pt-0 sm:pr-36">
                           <Timer
                             id={timer.id}
                             title={timer.title}
+                            headingSize={timer.headingSize}
                             duration={timer.duration}
                             isActive={timer.isActive}
                             isPaused={isPaused}
