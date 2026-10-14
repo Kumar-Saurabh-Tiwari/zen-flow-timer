@@ -349,15 +349,15 @@ function Index() {
 
             <section className="overflow-hidden rounded-3xl border border-border bg-gradient-warm px-6 py-4 shadow-soft">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 basis-full sm:flex-1 sm:basis-auto">
                   {/* <div className="red-hat-lockup mt-1 shrink-0" aria-label="Red Hat">
                     <img src="/Red_Hat_logo.svg.webp" alt="Red Hat logo" />
                   </div> */}
-                  <p className="text-[15px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground sm:text-[15px]">
                     Welcome to <span className="font-bold text-foreground">Red Hat</span> Training
                   </p>
                 </div>
-                <div className="shrink-0">
+                <div className="min-w-0 max-w-full">
                   <LiveClock timezone={userTimezone} />
                 </div>
                 <Button variant="outline" onClick={() => { setProfileDraft(userName); setIsEditingProfile(true); }} aria-expanded={isEditingProfile}>
