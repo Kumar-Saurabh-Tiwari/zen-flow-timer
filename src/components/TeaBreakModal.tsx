@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Expand, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +40,23 @@ const getBreakMedia = (preset: string) => {
   return mediaByPreset[preset] ?? { src: "/custom-break.gif", alt: "Custom break", type: "image" };
 };
 
+function BreakMedia({ preset }: { preset: string }) {
+  const media = getBreakMedia(preset);
+
+  return media.type === "video" ? (
+    <video
+      src={media.src}
+      autoPlay
+      loop
+      muted
+      playsInline
+      className="h-full w-full object-contain"
+    />
+  ) : (
+    <img src={media.src} alt={media.alt} className="h-full w-full object-contain" />
+  );
+}
+
 const formatTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
@@ -52,6 +70,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
   const [title, setTitle] = useState(PRESET_TITLES[0]);
   const [remainingSeconds, setRemainingSeconds] = useState(5 * 60);
   const [activeLabel, setActiveLabel] = useState(PRESET_TITLES[0]);
+  const [expandedDialog, setExpandedDialog] = useState(false);
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
 
@@ -65,6 +84,17 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!expandedDialog) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpandedDialog(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [expandedDialog]);
 
   useEffect(() => {
     if (phase !== "active") return;
@@ -112,7 +142,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
       transition={{ duration: 0.25 }}
       role="dialog"
       aria-modal="true"
-      aria-label="Tea break setup"
+      aria-label={phase === "active" ? "Active break" : "Tea break setup"}
       className="fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-background/70 p-3 backdrop-blur-lg sm:p-6"
     >
       <motion.div
@@ -120,7 +150,13 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.96, y: 20 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className={`break-dialog my-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto rounded-3xl border border-border text-center shadow-soft backdrop-blur-xl sm:max-h-[calc(100dvh-3rem)] ${phase === "setup" ? "max-w-4xl p-5 sm:p-8" : "max-w-lg p-4 sm:p-6"}`}
+        className={`break-dialog my-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto rounded-3xl border border-border text-center shadow-soft backdrop-blur-xl sm:max-h-[calc(100dvh-3rem)] ${
+          expandedDialog
+            ? "fixed inset-3 z-[60] my-0 flex h-[calc(100dvh-1.5rem)] max-h-none max-w-none flex-col p-4 sm:inset-6 sm:h-[calc(100dvh-3rem)] sm:p-8"
+            : phase === "setup"
+              ? "max-w-4xl p-5 sm:p-8"
+              : "max-w-lg p-4 sm:p-6"
+        }`}
       >
         {phase === "setup" ? (
           <div className="grid items-center gap-6 text-left md:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)] md:gap-10">
@@ -191,55 +227,43 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
             </div>
 
             <div className="break-preview-pane order-first flex h-60 items-center justify-center overflow-hidden rounded-2xl p-0 md:order-last md:h-72">
-              {(() => {
-                const media = getBreakMedia(selectedPreset);
-
-                if (media.type === "video") {
-                  return (
-                    <video
-                      src={media.src}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="h-full w-full object-contain"
-                    />
-                  );
-                }
-
-                return <img src={media.src} alt={media.alt} className="h-full w-full object-contain" />;
-              })()}
+              <BreakMedia preset={selectedPreset} />
             </div>
           </div>
         ) : (
-          <>
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Enjoy your {activeLabel}
-            </h2>
+          <div className={expandedDialog ? "flex min-h-0 flex-1 flex-col" : ""}>
+            <div className="flex items-start justify-center gap-3">
+              <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                Enjoy your {activeLabel}
+              </h2>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                aria-label={expandedDialog ? "Restore break dialog size" : "Expand break dialog"}
+                title={expandedDialog ? "Restore dialog size" : "Expand dialog"}
+                className="shrink-0"
+                onClick={() => setExpandedDialog((expanded) => !expanded)}
+              >
+                {expandedDialog ? <Minimize2 /> : <Expand />}
+              </Button>
+            </div>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Your break is active. Relax, breathe, and the timer will return you to practice when finished.
+              Your break is active. Relax, breathe, and the timer will return you to practice when
+              finished.
             </p>
 
-            <div className="break-active-panel mt-5 rounded-2xl border border-border p-3 sm:mt-6 sm:p-4">
-              <div className="relative mx-auto mb-3 h-64 w-64">
-                {(() => {
-                  const media = getBreakMedia(selectedPreset);
-
-                  if (media.type === "video") {
-                    return (
-                      <video
-                        src={media.src}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="h-full w-full object-contain"
-                      />
-                    );
-                  }
-
-                  return <img src={media.src} alt={media.alt} className="h-full w-full object-contain" />;
-                })()}
+            <div
+              className={`break-active-panel mt-5 rounded-2xl border border-border p-3 sm:mt-6 sm:p-4 ${
+                expandedDialog ? "flex min-h-0 flex-1 flex-col" : ""
+              }`}
+            >
+              <div
+                className={`relative mx-auto mb-3 ${
+                  expandedDialog ? "min-h-[12rem] w-full flex-1" : "h-64 w-64"
+                }`}
+              >
+                <BreakMedia preset={selectedPreset} />
               </div>
 
               <div className="break-live-timer mx-auto mt-4 w-fit font-extrabold text-primary">
@@ -252,7 +276,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 End Break Early
               </Button>
             </div>
-          </>
+          </div>
         )}
       </motion.div>
     </motion.div>
