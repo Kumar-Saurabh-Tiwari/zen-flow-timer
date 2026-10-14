@@ -408,27 +408,24 @@ function Index() {
                   </Button>
                 </div>
 
-                <div className="session-label-field min-w-0 flex-1 basis-[220px]">
+                <div className="session-label-field min-w-0 flex-1 basis-[240px]">
                   <Tag className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  <div className="min-w-0 flex-1">
-                    <Label htmlFor="session-label" className="text-[11px] font-medium text-muted-foreground">Session label</Label>
+                    <Label htmlFor="session-label" className="shrink-0 text-xs font-medium text-muted-foreground">Session</Label>
                     <Input
                       id="session-label"
                       value={sessionMessage}
                       onChange={(event) => setSessionMessage(event.target.value)}
                       aria-label="Session message"
-                      placeholder="Day 1 / Morning Tea Break"
-                      className="h-7 rounded-none border-0 bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+                      placeholder="Add a label"
+                      className="h-full min-w-0 flex-1 rounded-none border-0 bg-transparent px-0 py-0 text-sm font-medium shadow-none focus-visible:ring-0"
                     />
-                  </div>
-                  <Pencil className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 </div>
 
                 <div className="flex justify-start sm:justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="rounded-xl"
+                    className="h-10 rounded-lg"
                     aria-expanded={showPlanCard}
                     onClick={() => setShowPlanCard((v) => !v)}
                   >
