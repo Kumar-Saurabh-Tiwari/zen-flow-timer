@@ -14,11 +14,30 @@ const PRESET_TITLES = [
   "Herbal Tea Break 🍵",
   "Coffee Break ☕",
   "Coffee Timer ☕",
+  "Coffee Break 1 ☕",
+  "Coffee Break 2 ☕",
   "Lunch Break 🥗",
   "Relax Break",
   "Study Break",
   "Focus Break",
 ];
+
+const getBreakMedia = (preset: string) => {
+  const mediaByPreset: Record<string, { src: string; alt: string; type: "image" | "video" }> = {
+    "Tea Break 🍵": { src: "/tea-break1.gif", alt: "Stretching person", type: "image" },
+    "Herbal Tea Break 🍵": { src: "/herbal-tea.gif", alt: "Herbal tea break", type: "image" },
+    "Coffee Break ☕": { src: "/sip-coffee.gif", alt: "Coffee break", type: "image" },
+    "Coffee Timer ☕": { src: "/coffee-timer.gif", alt: "Coffee timer break", type: "image" },
+    "Coffee Break 1 ☕": { src: "/coffee-1.mp4", alt: "Coffee break animation one", type: "video" },
+    "Coffee Break 2 ☕": { src: "/coffee-2.mp4", alt: "Coffee break animation two", type: "video" },
+    "Lunch Break 🥗": { src: "/launch-time.gif", alt: "Lunch break", type: "image" },
+    "Relax Break": { src: "/custom-break.gif", alt: "Relax break", type: "image" },
+    "Study Break": { src: "/focus.gif", alt: "Study break", type: "image" },
+    "Focus Break": { src: "/focus2.gif", alt: "Focus break", type: "image" },
+  };
+
+  return mediaByPreset[preset] ?? { src: "/custom-break.gif", alt: "Custom break", type: "image" };
+};
 
 const formatTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -172,30 +191,24 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
             </div>
 
             <div className="break-preview-pane order-first flex h-60 items-center justify-center overflow-hidden rounded-2xl p-0 md:order-last md:h-72">
-              {selectedPreset === "Tea Break 🍵" && (
-                <img src="/tea-break1.gif" alt="Stretching person" className="h-full w-full object-contain" />
-              )}
-              {selectedPreset === "Herbal Tea Break 🍵" && (
-                <img src="/herbal-tea.gif" alt="Stretching person" className="h-full w-full object-contain" />
-              )}
-              {selectedPreset === "Coffee Break ☕" && (
-                <img src="/sip-coffee.gif" alt="Stretching person" className="h-full w-full object-contain" />
-              )}
-              {selectedPreset === "Coffee Timer ☕" && (
-                <img src="/coffee-timer.gif" alt="Stretching person" className="h-full w-full object-contain" />
-              )}
-              {selectedPreset === "Lunch Break 🥗" && (
-                <img src="/launch-time.gif" alt="Lunch person" className="h-full w-full object-contain" />
-              )}
-              {selectedPreset === "Relax Break" && (
-                <img src="/custom-break.gif" alt="Stretching person" className="h-full w-full object-contain" />
-              )}
-              {selectedPreset === "Study Break" && (
-                <img src="/focus.gif" alt="Stretching person" className="h-full w-full object-contain" />
-              )}
-              {selectedPreset === "Focus Break" && (
-                <img src="/focus2.gif" alt="Stretching person" className="h-full w-full object-contain" />
-              )}
+              {(() => {
+                const media = getBreakMedia(selectedPreset);
+
+                if (media.type === "video") {
+                  return (
+                    <video
+                      src={media.src}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="h-full w-full object-contain"
+                    />
+                  );
+                }
+
+                return <img src={media.src} alt={media.alt} className="h-full w-full object-contain" />;
+              })()}
             </div>
           </div>
         ) : (
@@ -208,78 +221,26 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
             </p>
 
             <div className="break-active-panel mt-5 rounded-2xl border border-border p-3 sm:mt-6 sm:p-4">
-              {selectedPreset === "Tea Break 🍵" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/tea-break1.gif"
-                    alt="Stretching person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
-              {selectedPreset === "Herbal Tea Break 🍵" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/herbal-tea.gif"
-                    alt="Stretching person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
-              {selectedPreset === "Coffee Break ☕" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/sip-coffee.gif"
-                    alt="Stretching person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
-              {selectedPreset === "Coffee Timer ☕" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/coffee-timer.gif"
-                    alt="Stretching person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
-              {selectedPreset === "Lunch Break 🥗" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/launch-time.gif"
-                    alt="Lunch person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
-              {selectedPreset === "Relax Break" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/custom-break.gif"
-                    alt="Stretching person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
-              {selectedPreset === "Study Break" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/focus.gif"
-                    alt="Stretching person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
-              {selectedPreset === "Focus Break" && (
-                <div className="relative mx-auto mb-3 h-64 w-64">
-                  <img
-                    src="/focus2.gif"
-                    alt="Stretching person"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              )}
+              <div className="relative mx-auto mb-3 h-64 w-64">
+                {(() => {
+                  const media = getBreakMedia(selectedPreset);
+
+                  if (media.type === "video") {
+                    return (
+                      <video
+                        src={media.src}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="h-full w-full object-contain"
+                      />
+                    );
+                  }
+
+                  return <img src={media.src} alt={media.alt} className="h-full w-full object-contain" />;
+                })()}
+              </div>
 
               <div className="break-live-timer mx-auto mt-4 w-fit font-extrabold text-primary">
                 {formatTime(remainingSeconds)}
