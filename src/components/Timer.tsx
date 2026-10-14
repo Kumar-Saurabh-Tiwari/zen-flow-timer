@@ -87,8 +87,8 @@ export default function Timer({
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex flex-1 min-w-0 items-center gap-4 max-sm:flex-col max-sm:items-start">
-      <div className="relative flex h-[130px] w-[130px] min-w-[130px] shrink-0 items-center justify-center">
+    <div className="flex flex-1 min-w-0 items-center gap-5">
+      <div className="relative flex h-[130px] w-[130px] min-w-[130px] max-sm:h-[96px] max-sm:w-[96px] max-sm:min-w-[96px] shrink-0 items-center justify-center">
         <svg
           viewBox={`0 0 ${size} ${size}`}
           className="absolute inset-0"
@@ -103,7 +103,8 @@ export default function Timer({
             cy={size / 2}
           />
           <circle
-            stroke={isPaused ? "var(--color-destructive)" : "var(--color-primary)"}
+            className="timer-ring-progress"
+            stroke={isPaused ? "var(--color-muted-foreground)" : "var(--color-primary)"}
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
@@ -121,7 +122,7 @@ export default function Timer({
             }}
           />
         </svg>
-        <span className="relative text-4xl font-extrabold leading-none tracking-tight tabular-nums text-foreground">
+        <span className="relative text-4xl max-sm:text-2xl font-bold leading-none tabular-nums text-foreground">
           {formatTime(remainingTime)}
         </span>
       </div>
@@ -141,9 +142,9 @@ export default function Timer({
             </span>
           )}
         </div>
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className={`h-full rounded-full ${isPaused ? "bg-muted-foreground/60" : "bg-primary"}`}
+            className={`timer-progress h-full rounded-full ${isPaused ? "bg-muted-foreground/60" : "bg-primary"}`}
             style={{
               width: `${Math.min(Math.max(progress, 0), 100)}%`,
               transition: running ? "width 1s linear" : "width 0.3s ease-out",

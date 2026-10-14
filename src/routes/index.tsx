@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
+  ArrowUp,
+  ArrowDown,
+  Check,
+  Pause,
+  Tag,
   SlidersHorizontal,
   PanelTop,
   Coffee,
@@ -90,6 +95,7 @@ const fmt = (total: number) =>
   `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 
 function Index() {
+  const reduceMotion = useReducedMotion();
   const [userName, setUserName] = useState("there");
   const [profileDraft, setProfileDraft] = useState("");
   const [practiceTitle, setPracticeTitle] = useState("Practice Time");
@@ -380,35 +386,43 @@ function Index() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="overflow-hidden"
               >
-              <div className="mt-5 grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+              <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-border pt-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
-                    variant="secondary"
+                    variant="default"
                     size="sm"
-                    className="rounded-xl"
+                    className="h-10 rounded-lg px-5 transition-all duration-200 motion-reduce:transition-none"
                     onClick={timersStarted ? togglePause : startTimers}
                     disabled={timers.length === 0}
                   >
-                    {!timersStarted && <Play className="size-3.5" />}
+                    {timersStarted && !isPaused ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
                     {timersStarted ? (isPaused ? "Resume" : "Pause") : "Start"}
                   </Button>
-                  <Button variant="destructive" size="sm" className="rounded-xl" onClick={resetTimers}>
+                  <Button variant="ghost" size="sm" className="h-10 rounded-lg" onClick={resetTimers}>
                     <RotateCcw className="size-3.5" />
                     Reset
                   </Button>
-                  <Button variant="outline" size="sm" className="rounded-xl" onClick={openTeaBreak}>
+                  <Button variant="outline" size="sm" className="h-10 rounded-lg" onClick={openTeaBreak}>
                     <Coffee className="size-3.5" />
                     Take a Break
                   </Button>
                 </div>
 
-                <Input
-                  value={sessionMessage}
-                  onChange={(event) => setSessionMessage(event.target.value)}
-                  aria-label="Session message"
-                  placeholder="Day 1 / Morning Tea Break"
-                  className="h-9 w-full min-w-[190px] rounded-xl border-transparent bg-muted/60 px-3 text-center text-sm font-medium shadow-none focus-visible:border-ring focus-visible:bg-background sm:w-[280px]"
-                />
+                <div className="session-label-field min-w-0 flex-1 basis-[220px]">
+                  <Tag className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <Label htmlFor="session-label" className="text-[11px] font-medium text-muted-foreground">Session label</Label>
+                    <Input
+                      id="session-label"
+                      value={sessionMessage}
+                      onChange={(event) => setSessionMessage(event.target.value)}
+                      aria-label="Session message"
+                      placeholder="Day 1 / Morning Tea Break"
+                      className="h-7 rounded-none border-0 bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+                    />
+                  </div>
+                  <Pencil className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </div>
 
                 <div className="flex justify-start sm:justify-end">
                   <Button
@@ -507,26 +521,19 @@ function Index() {
                   <motion.div
                     key={timer.id}
                     layout
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{
-                      opacity: timer.isExpired ? 0.6 : 1,
-                      y: 0,
-                      scale: activeTimerIndex === index ? 1.015 : 1,
-                      boxShadow:
-                        activeTimerIndex === index
-                          ? "0 22px 50px -22px oklch(0.62 0.11 45 / 0.55)"
-                          : "0 0px 0px 0px oklch(0.62 0.11 45 / 0)",
-                    }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.35, ease: "easeOut" }}
-                    className={`relative rounded-3xl border bg-card p-5 ${activeTimerIndex === index
-                        ? "border-primary ring-2 ring-primary/25"
+                    initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
+                    transition={reduceMotion ? { duration: 0 } : { layout: { type: "spring", stiffness: 320, damping: 32 }, opacity: { duration: 0.2 }, y: { duration: 0.25 } }}
+                    className={`timer-card relative overflow-hidden rounded-lg border bg-card ${activeTimerIndex === index
+                        ? "timer-card-active border-primary/50"
                         : "border-border"
                       }`}
+
                   >
 
                     {timer.editing ? (
-                      <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
+                      <div className="grid gap-3 p-5 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
                         <Input
                           value={timer.title}
                           onChange={(e) =>
@@ -536,9 +543,11 @@ function Index() {
                               ),
                             )
                           }
+                          aria-label="Timer title"
                           placeholder="Timer title"
                         />
                         <Input
+                          aria-label="Timer minutes"
                           type="number"
                           min="1"
                           placeholder="Enter minutes..."
@@ -566,8 +575,8 @@ function Index() {
                       </div>
 
                     ) : (
-                      <div className="flex flex-wrap items-center gap-4">
-                        <div className="min-w-0 w-full flex-1 pt-10 sm:pt-0 sm:pr-36">
+                      <div className="flex flex-col">
+                        <div className="min-w-0 w-full p-5 sm:p-6">
                           <Timer
                             id={timer.id}
                             title={timer.title}
@@ -578,50 +587,26 @@ function Index() {
                             onComplete={() => handleTimerComplete(index)}
                           />
                         </div>
-                        <div className="absolute right-5 top-5 flex items-center gap-1.5">
-                          {timer.isExpired && (
-                            <span className="mr-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
-                              Done
-                            </span>
-                          )}
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            className="size-7"
-                            aria-label="Edit timer"
-                            title="Edit timer"
-                            onClick={() => editTimer(index)}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            className="size-7"
-                            aria-label="Delete timer"
-                            title="Delete timer"
-                            onClick={() => deleteTimer(index)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-7"
-                            aria-label="Move up"
-                            onClick={() => moveTimer(index, -1)}
-                          >
-                            ▲
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-7"
-                            aria-label="Move down"
-                            onClick={() => moveTimer(index, 1)}
-                          >
-                            ▼
-                          </Button>
+                        <div className="flex items-center justify-between gap-3 border-t border-border/70 bg-muted/20 px-4 py-2.5">
+                          <span className={`flex min-w-0 items-center gap-1.5 text-xs font-medium ${timer.isExpired ? "text-accent-foreground" : "text-muted-foreground"}`}>
+                            {timer.isExpired ? <Check className="size-3.5" /> : <span className="tabular-nums">{String(index + 1).padStart(2, "0")}</span>}
+                            {timer.isExpired ? "Completed" : "Practice block"}
+                          </span>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <Button variant="ghost" size="icon" className="timer-control size-9" aria-label="Move up" title="Move up" disabled={index === 0} onClick={() => moveTimer(index, -1)}>
+                              <ArrowUp />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="timer-control size-9" aria-label="Move down" title="Move down" disabled={index === timers.length - 1} onClick={() => moveTimer(index, 1)}>
+                              <ArrowDown />
+                            </Button>
+                            <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
+                            <Button variant="ghost" size="icon" className="timer-control size-9" aria-label="Edit timer" title="Edit timer" onClick={() => editTimer(index)}>
+                              <Pencil />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="timer-control size-9 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete timer" title="Delete timer" onClick={() => deleteTimer(index)}>
+                              <Trash2 />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}
