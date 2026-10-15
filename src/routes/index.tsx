@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUp,
@@ -15,6 +15,9 @@ import {
   Play,
   RotateCcw,
   Trash2,
+  CalendarClock,
+  X,
+  Presentation,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
@@ -23,7 +26,8 @@ import SettingsSidebar from "@/components/SettingsSidebar";
 import HeadingSizeControl from "@/components/HeadingSizeControl";
 import { headingSize } from "@/lib/customization";
 import LiveClock from "@/components/LiveClock";
-import TeaBreakModal from "@/components/TeaBreakModal";
+import TeaBreakModal, { type BreakPlan } from "@/components/TeaBreakModal";
+import { Link } from "@tanstack/react-router";
 
 import { getDefaultTimezone } from "@/lib/timezones";
 import { Button } from "@/components/ui/button";
@@ -116,6 +120,11 @@ function Index() {
   const [newTimerHeadingSize, setNewTimerHeadingSize] = useState(24);
   const [showControlPanel, setShowControlPanel] = useState(true);
   const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
+  const [scheduledBreak, setScheduledBreak] = useState<BreakPlan | null>(null);
+  const [autoBreak, setAutoBreak] = useState<BreakPlan | null>(null);
+  const [instructorName, setInstructorName] = useState("Manas Kumar");
+  const scheduledBreakRef = useRef<BreakPlan | null>(null);
+  useEffect(() => { scheduledBreakRef.current = scheduledBreak; }, [scheduledBreak]);
 
 
   useEffect(() => {
@@ -137,6 +146,8 @@ function Index() {
       })),
     );
     if (!storedName.trim() || storedName.trim() === "there") setShowWelcome(true);
+    const trainer = loadFromStorage<{ name?: string }>("timerApp_trainerProfile", {});
+    if (trainer.name?.trim()) setInstructorName(trainer.name.trim());
 
     setHydrated(true);
   }, []);
@@ -208,11 +219,25 @@ function Index() {
     if (timersStarted && !isPaused) {
       setIsPaused(true);
     }
+    setAutoBreak(null);
     setIsBreakModalOpen(true);
+  };
+
+  const scheduleBreak = (plan: BreakPlan) => {
+    setScheduledBreak(plan);
+    setIsBreakModalOpen(false);
+    // Opening the dialog paused the session; resume it so the block can finish.
+    if (timersStarted) setIsPaused(false);
+  };
+
+  const cancelBreakDialog = () => {
+    setIsBreakModalOpen(false);
+    setAutoBreak(null);
   };
 
   const handleBreakComplete = () => {
     setIsBreakModalOpen(false);
+    setAutoBreak(null);
 
     if (!timersStarted && timers.length > 0) {
       setActiveTimerIndex(0);
@@ -241,6 +266,7 @@ function Index() {
   };
 
   const resetTimers = () => {
+    setScheduledBreak(null);
     setActiveTimerIndex(-1);
     setTimersStarted(false);
     setIsPaused(false);
@@ -264,8 +290,18 @@ function Index() {
           confirmButtonText: "Nice",
           confirmButtonColor: "#b4784f",
         });
+        setScheduledBreak(null);
       } else {
         setActiveTimerIndex(nextIndex);
+        const plan = scheduledBreakRef.current;
+        if (plan) {
+          // Scheduled break behaves like a timer: next block waits until it ends.
+          scheduledBreakRef.current = null;
+          setScheduledBreak(null);
+          setIsPaused(true);
+          setAutoBreak(plan);
+          setIsBreakModalOpen(true);
+        }
       }
       return prev.map((timer, idx) => ({
         ...timer,
@@ -408,6 +444,14 @@ function Index() {
                   </Button>
                 </div>
 
+                {scheduledBreak && (
+                  <span className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 pl-3 pr-1 text-xs font-medium text-primary">
+                    <CalendarClock className="size-3.5" />
+                    {scheduledBreak.title} · {scheduledBreak.minutes}m after this block
+                    <Button variant="ghost" size="icon" className="size-7" aria-label="Cancel scheduled break" onClick={() => setScheduledBreak(null)}><X /></Button>
+                  </span>
+                )}
+
                 <div className="session-label-field min-w-0 flex-1 basis-[240px]">
                   <Tag className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                     <Label htmlFor="session-label" className="shrink-0 text-xs font-medium text-muted-foreground">Session</Label>
@@ -436,9 +480,14 @@ function Index() {
               </div>
               </motion.div>
 
-              <p className="group ml-auto mt-3 w-fit cursor-default rounded-full border border-border/70 bg-card/60 px-3 py-1 font-serif text-[13px] italic tracking-[0.1em] text-foreground/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card/85 hover:text-primary hover:tracking-[0.15em] motion-reduce:transition-none">
-                Instructor <span className="font-semibold not-italic text-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none">Manas Kumar</span>
+              <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+              <Button asChild variant="outline" size="sm" className="h-8 rounded-full">
+                <Link to="/trainer"><Presentation className="size-3.5" />Instructor preview</Link>
+              </Button>
+              <p className="group w-fit cursor-default rounded-full border border-border/70 bg-card/60 px-3 py-1 font-serif text-[13px] italic tracking-[0.1em] text-foreground/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card/85 hover:text-primary hover:tracking-[0.15em] motion-reduce:transition-none">
+                Instructor <span className="font-semibold not-italic text-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none">{instructorName}</span>
               </p>
+              </div>
             </section>
 
             <SettingsSidebar
@@ -618,8 +667,11 @@ function Index() {
           <AnimatePresence>
             {isBreakModalOpen && (
               <TeaBreakModal
-                onCancel={() => setIsBreakModalOpen(false)}
+                onCancel={cancelBreakDialog}
                 onBreakComplete={handleBreakComplete}
+                autoStart={autoBreak}
+                onSchedule={scheduleBreak}
+                canSchedule={timersStarted}
               />
             )}
           </AnimatePresence>

@@ -5,9 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+export interface BreakPlan { title: string; minutes: number; preset: string }
+
 interface TeaBreakModalProps {
   onCancel: () => void;
   onBreakComplete: () => void;
+  /** When set, the break starts immediately (used by scheduled breaks). */
+  autoStart?: BreakPlan | null;
+  /** Queue the break to start when the current timer block ends. */
+  onSchedule?: (plan: BreakPlan) => void;
+  canSchedule?: boolean;
 }
 
 const PRESET_TITLES = [
@@ -63,13 +70,14 @@ const formatTime = (seconds: number) => {
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 };
 
-export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakModalProps) {
-  const [phase, setPhase] = useState<"setup" | "active">("setup");
-  const [minutes, setMinutes] = useState<string>("5");
-  const [selectedPreset, setSelectedPreset] = useState(PRESET_TITLES[0]);
-  const [title, setTitle] = useState(PRESET_TITLES[0]);
-  const [remainingSeconds, setRemainingSeconds] = useState(5 * 60);
-  const [activeLabel, setActiveLabel] = useState(PRESET_TITLES[0]);
+export default function TeaBreakModal({ onCancel, onBreakComplete, autoStart, onSchedule, canSchedule = false }: TeaBreakModalProps) {
+  const [phase, setPhase] = useState<"setup" | "active">(autoStart ? "active" : "setup");
+  const [minutes, setMinutes] = useState<string>(String(autoStart?.minutes ?? 5));
+  const [selectedPreset, setSelectedPreset] = useState(autoStart?.preset ?? PRESET_TITLES[0]);
+  const [title, setTitle] = useState(autoStart?.title ?? PRESET_TITLES[0]);
+  const [remainingSeconds, setRemainingSeconds] = useState((autoStart?.minutes ?? 5) * 60);
+  const [activeLabel, setActiveLabel] = useState(autoStart?.title ?? PRESET_TITLES[0]);
+  const [mode, setMode] = useState<"now" | "schedule">("now");
   const [expandedDialog, setExpandedDialog] = useState(false);
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
@@ -216,10 +224,36 @@ export default function TeaBreakModal({ onCancel, onBreakComplete }: TeaBreakMod
                 Break duration: {formattedDuration}
               </p>
 
+              <div role="radiogroup" aria-label="When to take the break" className="mt-4 grid gap-2 sm:grid-cols-2">
+                {([
+                  { id: "now", label: "Start right now", hint: "Pauses the session and begins the break." },
+                  { id: "schedule", label: "Schedule after current timer", hint: canSchedule ? "Starts automatically when the running block ends." : "Start a session first to schedule a break." },
+                ] as const).map((option) => {
+                  const disabled = option.id === "schedule" && !canSchedule;
+                  return (
+                    <button key={option.id} type="button" role="radio" aria-checked={mode === option.id} disabled={disabled}
+                      onClick={() => setMode(option.id)}
+                      className={`rounded-xl border p-3 text-left transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${mode === option.id ? "border-primary bg-primary/10 shadow-sm" : "border-border bg-card/60 hover:border-primary/40"}`}>
+                      <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                        <span className={`grid size-4 place-items-center rounded-full border ${mode === option.id ? "border-primary" : "border-muted-foreground"}`}>{mode === option.id && <span className="size-2 rounded-full bg-primary" />}</span>
+                        {option.label}
+                      </span>
+                      <span className="mt-1 block pl-6 text-xs text-muted-foreground">{option.hint}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                <Button className="w-full sm:w-auto" onClick={startBreak} disabled={duration <= 0}>
-                  Start Break
-                </Button>
+                {mode === "schedule" && canSchedule && onSchedule ? (
+                  <Button className="w-full sm:w-auto" disabled={duration <= 0} onClick={() => onSchedule({ title: title?.trim() || PRESET_TITLES[0], minutes: numericMinutes, preset: selectedPreset })}>
+                    Schedule Break
+                  </Button>
+                ) : (
+                  <Button className="w-full sm:w-auto" onClick={startBreak} disabled={duration <= 0}>
+                    Start Break
+                  </Button>
+                )}
                 <Button variant="secondary" className="w-full sm:w-auto" onClick={onCancel}>
                   Cancel
                 </Button>
