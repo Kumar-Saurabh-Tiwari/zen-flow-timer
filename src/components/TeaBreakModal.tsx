@@ -30,6 +30,8 @@ const PRESET_TITLES = [
   "Focus Break",
 ];
 
+const DEFAULT_PRESET = "Tea Break 🍵";
+
 const getBreakMedia = (preset: string) => {
   const mediaByPreset: Record<string, { src: string; alt: string; type: "image" | "video" }> = {
     "Tea Break 🍵": { src: "/tea-break1.gif", alt: "Stretching person", type: "image" },
@@ -73,10 +75,10 @@ const formatTime = (seconds: number) => {
 export default function TeaBreakModal({ onCancel, onBreakComplete, autoStart, onSchedule, canSchedule = false }: TeaBreakModalProps) {
   const [phase, setPhase] = useState<"setup" | "active">(autoStart ? "active" : "setup");
   const [minutes, setMinutes] = useState<string>(String(autoStart?.minutes ?? 5));
-  const [selectedPreset, setSelectedPreset] = useState(autoStart?.preset ?? PRESET_TITLES[0]);
-  const [title, setTitle] = useState(autoStart?.title ?? PRESET_TITLES[0]);
+  const [selectedPreset, setSelectedPreset] = useState(autoStart?.preset ?? DEFAULT_PRESET);
+  const [title, setTitle] = useState(autoStart?.title ?? DEFAULT_PRESET);
   const [remainingSeconds, setRemainingSeconds] = useState((autoStart?.minutes ?? 5) * 60);
-  const [activeLabel, setActiveLabel] = useState(autoStart?.title ?? PRESET_TITLES[0]);
+  const [activeLabel, setActiveLabel] = useState(autoStart?.title ?? DEFAULT_PRESET);
   const [mode, setMode] = useState<"now" | "schedule">("now");
   const [expandedDialog, setExpandedDialog] = useState(false);
   const completedRef = useRef(false);
@@ -121,7 +123,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete, autoStart, on
 
   const startBreak = () => {
     if (duration <= 0) return;
-    setActiveLabel(title?.trim() || PRESET_TITLES[0]);
+    setActiveLabel(title?.trim() || DEFAULT_PRESET);
     setRemainingSeconds(duration);
     completedRef.current = false;
     setPhase("active");
@@ -246,7 +248,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete, autoStart, on
 
               <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
                 {mode === "schedule" && canSchedule && onSchedule ? (
-                  <Button className="w-full sm:w-auto" disabled={duration <= 0} onClick={() => onSchedule({ title: title?.trim() || PRESET_TITLES[0], minutes: numericMinutes, preset: selectedPreset })}>
+                  <Button className="w-full sm:w-auto" disabled={duration <= 0} onClick={() => onSchedule({ title: title?.trim() || DEFAULT_PRESET, minutes: numericMinutes, preset: selectedPreset })}>
                     Schedule Break
                   </Button>
                 ) : (

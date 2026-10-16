@@ -92,10 +92,10 @@ function TrainerPage() {
 
         <section className="mt-8 grid gap-5 rounded-3xl border border-border bg-card p-6 shadow-soft">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2"><Label htmlFor="tr-name">Instructor name</Label><Input id="tr-name" value={profile.name} maxLength={80} onChange={(e) => set("name", e.target.value)} placeholder="Manas Kumar" />{errors.name && <p className="text-xs text-destructive">{errors.name}</p>}</div>
+            <div className="grid gap-2"><Label htmlFor="tr-name">Instructor name</Label><Input id="tr-name" value={profile.name} maxLength={80} onChange={(e) => set("name", e.target.value)} placeholder="Manas Kumar" />{errors["name"] && <p className="text-xs text-destructive">{errors["name"]}</p>}</div>
             <div className="grid gap-2"><Label htmlFor="tr-role">Title / role</Label><Input id="tr-role" value={profile.role} maxLength={80} onChange={(e) => set("role", e.target.value)} placeholder="Senior Technical Instructor" /></div>
           </div>
-          <div className="grid gap-2"><Label htmlFor="tr-course">Course name</Label><Input id="tr-course" value={profile.course} maxLength={120} onChange={(e) => set("course", e.target.value)} placeholder="Red Hat System Administration I" />{errors.course && <p className="text-xs text-destructive">{errors.course}</p>}</div>
+          <div className="grid gap-2"><Label htmlFor="tr-course">Course name</Label><Input id="tr-course" value={profile.course} maxLength={120} onChange={(e) => set("course", e.target.value)} placeholder="Red Hat System Administration I" />{errors["course"] && <p className="text-xs text-destructive">{errors["course"]}</p>}</div>
           <div className="grid gap-2"><Label htmlFor="tr-desc">Description</Label><Textarea id="tr-desc" rows={4} value={profile.description} maxLength={1000} onChange={(e) => set("description", e.target.value)} placeholder="What learners will achieve in this course…" /></div>
 
           <div className="grid gap-2">
