@@ -125,6 +125,8 @@ function Index() {
   const [instructorName, setInstructorName] = useState("Manas Kumar");
   const scheduledBreakRef = useRef<BreakPlan | null>(null);
   const sessionEndedForBreakRef = useRef(false);
+  const timersRef = useRef<TimerBlock[]>([]);
+  useEffect(() => { timersRef.current = timers; }, [timers]);
   useEffect(() => { scheduledBreakRef.current = scheduledBreak; }, [scheduledBreak]);
 
 
