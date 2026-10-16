@@ -285,7 +285,6 @@ function Index() {
   };
 
   const handleTimerComplete = useCallback((completedIndex: number) => {
-    console.warn("DBG complete", completedIndex, !!scheduledBreakRef.current);
     // Side effects stay outside the state updater so they run exactly once.
     const nextIndex = completedIndex + 1;
     const isFinished = nextIndex >= timersRef.current.length;
