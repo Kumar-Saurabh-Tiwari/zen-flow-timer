@@ -35,6 +35,7 @@ export default function Timer({
     return cached && cached.duration === duration ? cached.remaining : duration;
   });
   const onCompleteRef = useRef(onComplete);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -58,11 +59,17 @@ export default function Timer({
       return;
     }
     if (isPaused) return;
+    completedRef.current = false;
     const interval = setInterval(() => {
       setRemainingTime((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          setTimeout(() => onCompleteRef.current(), 0);
+          // Guard: updaters may run twice in development; complete only once.
+          setTimeout(() => {
+            if (completedRef.current) return;
+            completedRef.current = true;
+            onCompleteRef.current();
+          }, 0);
           return 0;
         }
         return prev - 1;
