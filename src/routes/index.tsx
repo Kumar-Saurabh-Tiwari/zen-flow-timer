@@ -283,23 +283,22 @@ function Index() {
   };
 
   const handleTimerComplete = useCallback((completedIndex: number) => {
-    setTimers((prev) => {
-      const nextIndex = completedIndex + 1;
-      const isFinished = nextIndex >= prev.length;
-      if (isFinished) {
-        setActiveTimerIndex(-1);
-        setTimersStarted(false);
-        setIsPaused(false);
-        const finalPlan = scheduledBreakRef.current;
-        if (finalPlan) {
-          // Last block ended with a break queued: run the break, celebrate after it.
-          scheduledBreakRef.current = null;
-          setScheduledBreak(null);
-          sessionEndedForBreakRef.current = true;
-          setAutoBreak(finalPlan);
-          setIsBreakModalOpen(true);
-          return prev.map((timer, idx) => ({ ...timer, isActive: false, isExpired: idx <= completedIndex ? true : timer.isExpired }));
-        }
+    // Side effects stay outside the state updater so they run exactly once.
+    const nextIndex = completedIndex + 1;
+    const isFinished = nextIndex >= timersRef.current.length;
+    const plan = scheduledBreakRef.current;
+    scheduledBreakRef.current = null;
+    if (plan) setScheduledBreak(null);
+    if (isFinished) {
+      setActiveTimerIndex(-1);
+      setTimersStarted(false);
+      setIsPaused(false);
+      if (plan) {
+        // Last block ended with a break queued: run the break, celebrate after it.
+        sessionEndedForBreakRef.current = true;
+        setAutoBreak(plan);
+        setIsBreakModalOpen(true);
+      } else {
         Swal.fire({
           title: "Session complete!",
           text: "Great work — your practice session is finished.",
@@ -307,24 +306,21 @@ function Index() {
           confirmButtonText: "Nice",
           confirmButtonColor: "#b4784f",
         });
-      } else {
-        setActiveTimerIndex(nextIndex);
-        const plan = scheduledBreakRef.current;
-        if (plan) {
-          // Scheduled break behaves like a timer: next block waits until it ends.
-          scheduledBreakRef.current = null;
-          setScheduledBreak(null);
-          setIsPaused(true);
-          setAutoBreak(plan);
-          setIsBreakModalOpen(true);
-        }
       }
-      return prev.map((timer, idx) => ({
-        ...timer,
-        isActive: idx === nextIndex,
-        isExpired: idx <= completedIndex ? true : timer.isExpired,
-      }));
-    });
+    } else {
+      setActiveTimerIndex(nextIndex);
+      if (plan) {
+        // Scheduled break behaves like a timer: next block waits until it ends.
+        setIsPaused(true);
+        setAutoBreak(plan);
+        setIsBreakModalOpen(true);
+      }
+    }
+    setTimers((prev) => prev.map((timer, idx) => ({
+      ...timer,
+      isActive: !isFinished && idx === nextIndex,
+      isExpired: idx <= completedIndex ? true : timer.isExpired,
+    })));
   }, []);
 
 
