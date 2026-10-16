@@ -124,6 +124,7 @@ function Index() {
   const [autoBreak, setAutoBreak] = useState<BreakPlan | null>(null);
   const [instructorName, setInstructorName] = useState("Manas Kumar");
   const scheduledBreakRef = useRef<BreakPlan | null>(null);
+  const sessionEndedForBreakRef = useRef(false);
   useEffect(() => { scheduledBreakRef.current = scheduledBreak; }, [scheduledBreak]);
 
 
@@ -225,6 +226,7 @@ function Index() {
 
   const scheduleBreak = (plan: BreakPlan) => {
     setScheduledBreak(plan);
+    scheduledBreakRef.current = plan;
     setIsBreakModalOpen(false);
     // Opening the dialog paused the session; resume it so the block can finish.
     if (timersStarted) setIsPaused(false);
@@ -238,6 +240,11 @@ function Index() {
   const handleBreakComplete = () => {
     setIsBreakModalOpen(false);
     setAutoBreak(null);
+    if (sessionEndedForBreakRef.current) {
+      sessionEndedForBreakRef.current = false;
+      Swal.fire({ title: "Session complete!", text: "Great work — your practice session and break are finished.", icon: "success", confirmButtonText: "Nice", confirmButtonColor: "#b4784f" });
+      return;
+    }
 
     if (!timersStarted && timers.length > 0) {
       setActiveTimerIndex(0);
@@ -283,6 +290,16 @@ function Index() {
         setActiveTimerIndex(-1);
         setTimersStarted(false);
         setIsPaused(false);
+        const finalPlan = scheduledBreakRef.current;
+        if (finalPlan) {
+          // Last block ended with a break queued: run the break, celebrate after it.
+          scheduledBreakRef.current = null;
+          setScheduledBreak(null);
+          sessionEndedForBreakRef.current = true;
+          setAutoBreak(finalPlan);
+          setIsBreakModalOpen(true);
+          return prev.map((timer, idx) => ({ ...timer, isActive: false, isExpired: idx <= completedIndex ? true : timer.isExpired }));
+        }
         Swal.fire({
           title: "Session complete!",
           text: "Great work — your practice session is finished.",
@@ -290,7 +307,6 @@ function Index() {
           confirmButtonText: "Nice",
           confirmButtonColor: "#b4784f",
         });
-        setScheduledBreak(null);
       } else {
         setActiveTimerIndex(nextIndex);
         const plan = scheduledBreakRef.current;
@@ -671,7 +687,7 @@ function Index() {
                 onBreakComplete={handleBreakComplete}
                 autoStart={autoBreak}
                 onSchedule={scheduleBreak}
-                canSchedule={timersStarted}
+                canSchedule={timers.length > 0}
               />
             )}
           </AnimatePresence>

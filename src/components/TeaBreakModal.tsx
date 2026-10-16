@@ -229,7 +229,7 @@ export default function TeaBreakModal({ onCancel, onBreakComplete, autoStart, on
               <div role="radiogroup" aria-label="When to take the break" className="mt-4 grid gap-2 sm:grid-cols-2">
                 {([
                   { id: "now", label: "Start right now", hint: "Pauses the session and begins the break." },
-                  { id: "schedule", label: "Schedule after current timer", hint: canSchedule ? "Starts automatically when the running block ends." : "Start a session first to schedule a break." },
+                  { id: "schedule", label: "Schedule after current timer", hint: canSchedule ? "Starts automatically when the running block ends." : "Add a timer block first to schedule a break." },
                 ] as const).map((option) => {
                   const disabled = option.id === "schedule" && !canSchedule;
                   return (
