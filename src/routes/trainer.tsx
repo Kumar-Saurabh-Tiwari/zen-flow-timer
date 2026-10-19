@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/trainer")({
   head: () => ({
@@ -35,6 +36,8 @@ interface TrainerProfile {
   photo: string;
   done: number[];
   textScale: number;
+  headingScale: number;
+  font: string;
 }
 
 const schema = z.object({
@@ -43,7 +46,14 @@ const schema = z.object({
 });
 
 const empty: TrainerProfile = {
-  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1,
+  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1, headingScale: 1, font: "classic",
+};
+const FONTS: Record<string, { label: string; heading: string; body: string }> = {
+  classic: { label: "Classic", heading: "inherit", body: "inherit" },
+  editorial: { label: "Editorial serif", heading: "'Playfair Display', serif", body: "'Outfit', sans-serif" },
+  elegant: { label: "Elegant", heading: "'Fraunces', serif", body: "'Fraunces', serif" },
+  modern: { label: "Modern", heading: "'Space Grotesk', sans-serif", body: "'Outfit', sans-serif" },
+  display: { label: "Display", heading: "'DM Serif Display', serif", body: "'Outfit', sans-serif" },
 };
 const SCALE_MIN = 0.8, SCALE_MAX = 1.5;
 const clampScale = (v: number) => Math.min(SCALE_MAX, Math.max(SCALE_MIN, Math.round(v * 10) / 10));
@@ -79,7 +89,7 @@ function TrainerPage() {
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1 });
+      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1, headingScale: typeof stored.headingScale === "number" ? clampScale(stored.headingScale) : 1, font: typeof stored.font === "string" && stored.font in FONTS ? stored.font : "classic" });
     } catch { /* start fresh */ }
     setLoaded(true);
   }, []);
@@ -108,6 +118,8 @@ function TrainerPage() {
   const doneCount = agenda.filter((a) => profile.done.includes(a.index)).length;
   const toggleDone = (index: number) => set("done", profile.done.includes(index) ? profile.done.filter((d) => d !== index) : [...profile.done, index]);
   const sc = profile.textScale;
+  const hs = profile.headingScale;
+  const font = FONTS[profile.font] ?? FONTS.classic;
   const [photoError, setPhotoError] = useState("");
   const onPhoto = async (file?: File) => {
     if (!file) return;
@@ -186,15 +198,23 @@ function TrainerPage() {
               <motion.div className="absolute -left-24 top-10 size-96 rounded-full bg-primary/15 blur-3xl" animate={{ x: [0, 40, 0], y: [0, 30, 0] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />
               <motion.div className="absolute -right-20 bottom-0 size-[28rem] rounded-full bg-accent/40 blur-3xl" animate={{ x: [0, -30, 0], y: [0, -40, 0] }} transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }} />
             </div>
-            <div className="fixed right-5 top-5 z-10 flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-full border border-border bg-card/70 px-1 py-1 backdrop-blur" role="group" aria-label="Text size">
-                <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label="Decrease text size" disabled={sc <= SCALE_MIN} onClick={() => set("textScale", clampScale(sc - 0.1))}><Minus className="size-3.5" /></Button>
-                <span className="flex items-center gap-1 px-1 text-xs tabular-nums text-muted-foreground"><Type className="size-3.5" />{Math.round(sc * 100)}%</span>
-                <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label="Increase text size" disabled={sc >= SCALE_MAX} onClick={() => set("textScale", clampScale(sc + 0.1))}><Plus className="size-3.5" /></Button>
-              </div>
+            <div className="fixed inset-x-5 top-5 z-10 flex flex-wrap items-center justify-end gap-2">
+              <Select value={profile.font} onValueChange={(v) => set("font", v)}>
+                <SelectTrigger aria-label="Font style" className="h-9 w-40 rounded-full bg-card/70 backdrop-blur"><SelectValue /></SelectTrigger>
+                <SelectContent className="z-[60]">
+                  {Object.entries(FONTS).map(([k, f]) => <SelectItem key={k} value={k}><span style={{ fontFamily: f.heading }}>{f.label}</span></SelectItem>)}
+                </SelectContent>
+              </Select>
+              {([["Heading", hs, "headingScale"], ["Text", sc, "textScale"]] as const).map(([label, val, key]) => (
+                <div key={key} className="flex items-center gap-1 rounded-full border border-border bg-card/70 px-1 py-1 backdrop-blur" role="group" aria-label={`${label} size`}>
+                  <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label={`Decrease ${label.toLowerCase()} size`} disabled={val <= SCALE_MIN} onClick={() => set(key, clampScale(val - 0.1))}><Minus className="size-3.5" /></Button>
+                  <span className="flex min-w-16 items-center justify-center gap-1 text-xs tabular-nums text-muted-foreground"><Type className={key === "headingScale" ? "size-4" : "size-3"} />{Math.round(val * 100)}%</span>
+                  <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label={`Increase ${label.toLowerCase()} size`} disabled={val >= SCALE_MAX} onClick={() => set(key, clampScale(val + 0.1))}><Plus className="size-3.5" /></Button>
+                </div>
+              ))}
               <Button variant="outline" size="sm" className="rounded-full bg-card/70 backdrop-blur" onClick={() => setPreview(false)}><X className="size-4" />Close</Button>
             </div>
-            <div className="relative mx-auto flex min-h-full max-w-6xl flex-col justify-center gap-10 px-6 py-20 lg:px-12">
+            <div className="relative mx-auto flex min-h-full max-w-6xl flex-col justify-center gap-10 px-6 pb-16 pt-28 lg:px-12" style={{ fontFamily: font.body }}>
               <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-start gap-6 md:flex-row md:items-center">
                 <div className="relative shrink-0">
                   <motion.span aria-hidden className="absolute -inset-2 rounded-[2rem] bg-primary/25 blur-md" animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.04, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
@@ -203,21 +223,22 @@ function TrainerPage() {
                   </motion.div>
                 </div>
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary"><GraduationCap className="size-4" />Your instructor</p>
-                  <h2 className="mt-2 break-words text-5xl font-bold tracking-tight text-foreground md:text-6xl">{profile.name}</h2>
+                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-primary" /></span><GraduationCap className="size-4" />Your instructor</p>
+                  <motion.h2 layout className="trainer-shine mt-2 break-words font-bold leading-[1.05] tracking-tight" style={{ fontFamily: font.heading, fontSize: `clamp(2.25rem, ${4 * hs}vw, ${4.5 * hs}rem)` }}>{profile.name}</motion.h2>
                   {profile.role && <p className="mt-2 text-muted-foreground" style={{ fontSize: `${1.125 * sc}rem` }}>{profile.role}</p>}
                 </div>
               </motion.div>
 
-              <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
+              <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Course</p>
-                <h3 className="mt-2 break-words text-3xl font-semibold text-foreground md:text-4xl">{profile.course}</h3>
+                <h3 className="mt-2 break-words font-semibold leading-tight text-foreground" style={{ fontFamily: font.heading, fontSize: `${2.25 * hs}rem` }}>{profile.course}</h3>
+                <motion.div aria-hidden className="mt-4 h-1 rounded-full bg-gradient-to-r from-primary via-primary/40 to-transparent" initial={{ width: 0 }} animate={{ width: "8rem" }} transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} />
                 {profile.description && <p className="mt-4 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground" style={{ fontSize: `${1.0625 * sc}rem` }}>{profile.description}</p>}
               </motion.div>
 
               <div className={`grid gap-6 ${fields.length ? "lg:grid-cols-[1.4fr_1fr]" : ""}`}>
                 {agenda.length > 0 && (
-                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
+                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
                     <div className="flex items-center justify-between gap-3">
                       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><ListChecks className="size-4 text-primary" />Agenda</p>
                       <span className="text-xs tabular-nums text-muted-foreground">{doneCount}/{agenda.length} done</span>
@@ -250,7 +271,7 @@ function TrainerPage() {
                   </motion.div>
                 )}
                 {fields.length > 0 && (
-                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
+                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
                     <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="size-4 text-primary" />Details</p>
                     <dl className="mt-5 divide-y divide-border">
                       {fields.map((f, i) => (
