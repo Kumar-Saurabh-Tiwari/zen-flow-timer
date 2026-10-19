@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Eye, Plus, Trash2, X, GraduationCap, ListChecks, Sparkles, Check, Camera, Minus, Type } from "lucide-react";
+import { ArrowLeft, Eye, Plus, Trash2, X, GraduationCap, ListChecks, Sparkles, Check, Camera, Minus, Type, Settings2 } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +84,7 @@ function TrainerPage() {
   const [profile, setProfile] = useState<TrainerProfile>(empty);
   const [loaded, setLoaded] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [previewSettingsOpen, setPreviewSettingsOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -97,7 +98,12 @@ function TrainerPage() {
 
   useEffect(() => {
     if (!preview) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPreview(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPreview(false);
+        setPreviewSettingsOpen(false);
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [preview]);
@@ -198,23 +204,50 @@ function TrainerPage() {
               <motion.div className="absolute -left-24 top-10 size-96 rounded-full bg-primary/15 blur-3xl" animate={{ x: [0, 40, 0], y: [0, 30, 0] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />
               <motion.div className="absolute -right-20 bottom-0 size-[28rem] rounded-full bg-accent/40 blur-3xl" animate={{ x: [0, -30, 0], y: [0, -40, 0] }} transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }} />
             </div>
-            <div className="fixed inset-x-5 top-5 z-10 flex flex-wrap items-center justify-end gap-2">
-              <Select value={profile.font} onValueChange={(v) => set("font", v)}>
-                <SelectTrigger aria-label="Font style" className="h-9 w-40 rounded-full bg-card/70 backdrop-blur"><SelectValue /></SelectTrigger>
-                <SelectContent className="z-[60]">
-                  {Object.entries(FONTS).map(([k, f]) => <SelectItem key={k} value={k}><span style={{ fontFamily: f.heading }}>{f.label}</span></SelectItem>)}
-                </SelectContent>
-              </Select>
-              {([["Heading", hs, "headingScale"], ["Text", sc, "textScale"]] as const).map(([label, val, key]) => (
-                <div key={key} className="flex items-center gap-1 rounded-full border border-border bg-card/70 px-1 py-1 backdrop-blur" role="group" aria-label={`${label} size`}>
-                  <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label={`Decrease ${label.toLowerCase()} size`} disabled={val <= SCALE_MIN} onClick={() => set(key, clampScale(val - 0.1))}><Minus className="size-3.5" /></Button>
-                  <span className="flex min-w-16 items-center justify-center gap-1 text-xs tabular-nums text-muted-foreground"><Type className={key === "headingScale" ? "size-4" : "size-3"} />{Math.round(val * 100)}%</span>
-                  <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label={`Increase ${label.toLowerCase()} size`} disabled={val >= SCALE_MAX} onClick={() => set(key, clampScale(val + 0.1))}><Plus className="size-3.5" /></Button>
-                </div>
-              ))}
-              <Button variant="outline" size="sm" className="rounded-full bg-card/70 backdrop-blur" onClick={() => setPreview(false)}><X className="size-4" />Close</Button>
+            <div className="fixed right-5 top-5 z-10 flex items-center gap-2">
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-card/70 backdrop-blur"
+                  aria-label="Preview settings"
+                  aria-expanded={previewSettingsOpen}
+                  aria-controls="trainer-preview-settings"
+                  onClick={() => setPreviewSettingsOpen((open) => !open)}
+                >
+                  <Settings2 className="size-4" />
+                </Button>
+                <AnimatePresence>
+                  {previewSettingsOpen && (
+                    <motion.div
+                      id="trainer-preview-settings"
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="absolute right-0 top-12 grid min-w-52 gap-2 rounded-2xl border border-border bg-card/95 p-3 shadow-soft backdrop-blur"
+                      style={{ transformOrigin: "top right" }}
+                    >
+                      <Select value={profile.font} onValueChange={(v) => set("font", v)}>
+                        <SelectTrigger aria-label="Font style" className="h-9 w-full rounded-full bg-card/70 backdrop-blur"><SelectValue /></SelectTrigger>
+                        <SelectContent className="z-[60]">
+                          {Object.entries(FONTS).map(([k, f]) => <SelectItem key={k} value={k}><span style={{ fontFamily: f.heading }}>{f.label}</span></SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {([["Heading", hs, "headingScale"], ["Text", sc, "textScale"]] as const).map(([label, val, key]) => (
+                        <div key={key} className="flex items-center justify-between gap-2 rounded-full border border-border bg-card/70 px-1 py-1 backdrop-blur" role="group" aria-label={`${label} size`}>
+                          <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label={`Decrease ${label.toLowerCase()} size`} disabled={val <= SCALE_MIN} onClick={() => set(key, clampScale(val - 0.1))}><Minus className="size-3.5" /></Button>
+                          <span className="flex min-w-16 items-center justify-center gap-1 text-xs tabular-nums text-muted-foreground"><Type className={key === "headingScale" ? "size-4" : "size-3"} />{Math.round(val * 100)}%</span>
+                          <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label={`Increase ${label.toLowerCase()} size`} disabled={val >= SCALE_MAX} onClick={() => set(key, clampScale(val + 0.1))}><Plus className="size-3.5" /></Button>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <Button variant="outline" size="sm" className="rounded-full bg-card/70 backdrop-blur" onClick={() => { setPreview(false); setPreviewSettingsOpen(false); }}><X className="size-4" />Close</Button>
             </div>
-            <div className="relative mx-auto flex min-h-full max-w-6xl flex-col justify-center gap-10 px-6 pb-16 pt-28 lg:px-12" style={{ fontFamily: font.body }}>
+            <div className="relative mx-auto flex min-h-full w-full flex-col justify-center gap-10 px-8 pb-16 pt-28 sm:px-12 lg:px-16" style={{ fontFamily: font.body }}>
               <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-start gap-6 md:flex-row md:items-center">
                 <div className="relative shrink-0">
                   <motion.span aria-hidden className="absolute -inset-2 rounded-[2rem] bg-primary/25 blur-md" animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.04, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
@@ -229,16 +262,16 @@ function TrainerPage() {
                 </div>
               </motion.div>
 
-              <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Course</p>
-                <h3 className="mt-2 break-words font-semibold leading-tight text-foreground" style={{ fontFamily: font.heading, fontSize: `${2.25 * hs}rem` }}>{profile.course}</h3>
-                <motion.div aria-hidden className="mt-4 h-1 rounded-full bg-gradient-to-r from-primary via-primary/40 to-transparent" initial={{ width: 0 }} animate={{ width: "8rem" }} transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} />
-                {profile.description && <p className="mt-4 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground" style={{ fontSize: `${1.0625 * sc}rem` }}>{profile.description}</p>}
-              </motion.div>
+              <div className={`grid items-stretch gap-6 ${agenda.length > 0 ? "lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]" : ""}`}>
+                <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Course</p>
+                  <h3 className="mt-2 break-words font-semibold leading-tight text-foreground" style={{ fontFamily: font.heading, fontSize: `${2.25 * hs}rem` }}>{profile.course}</h3>
+                  <motion.div aria-hidden className="mt-4 h-1 rounded-full bg-gradient-to-r from-primary via-primary/40 to-transparent" initial={{ width: 0 }} animate={{ width: "8rem" }} transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} />
+                  {profile.description && <p className="mt-4 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground" style={{ fontSize: `${1.0625 * sc}rem` }}>{profile.description}</p>}
+                </motion.div>
 
-              <div className={`grid gap-6 ${fields.length ? "lg:grid-cols-[1.4fr_1fr]" : ""}`}>
                 {agenda.length > 0 && (
-                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
+                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-6 shadow-soft backdrop-blur">
                     <div className="flex items-center justify-between gap-3">
                       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><ListChecks className="size-4 text-primary" />Agenda</p>
                       <span className="text-xs tabular-nums text-muted-foreground">{doneCount}/{agenda.length} done</span>
@@ -270,20 +303,20 @@ function TrainerPage() {
                     </ol>
                   </motion.div>
                 )}
-                {fields.length > 0 && (
-                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
-                    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="size-4 text-primary" />Details</p>
-                    <dl className="mt-5 divide-y divide-border">
-                      {fields.map((f, i) => (
-                        <motion.div key={f.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + i * 0.06 }} className="flex flex-wrap justify-between gap-2 py-3">
-                          <dt className="text-muted-foreground" style={{ fontSize: `${0.875 * sc}rem` }}>{f.label}</dt>
-                          <dd className="text-right font-medium text-foreground" style={{ fontSize: `${1 * sc}rem` }}>{f.value}</dd>
-                        </motion.div>
-                      ))}
-                    </dl>
-                  </motion.div>
-                )}
               </div>
+              {fields.length > 0 && (
+                <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
+                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="size-4 text-primary" />Details</p>
+                  <dl className="mt-5 divide-y divide-border">
+                    {fields.map((f, i) => (
+                      <motion.div key={f.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + i * 0.06 }} className="flex flex-wrap justify-between gap-2 py-3">
+                        <dt className="text-muted-foreground" style={{ fontSize: `${0.875 * sc}rem` }}>{f.label}</dt>
+                        <dd className="text-right font-medium text-foreground" style={{ fontSize: `${1 * sc}rem` }}>{f.value}</dd>
+                      </motion.div>
+                    ))}
+                  </dl>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}
