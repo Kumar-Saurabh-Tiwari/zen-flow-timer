@@ -119,7 +119,7 @@ function TrainerPage() {
   const toggleDone = (index: number) => set("done", profile.done.includes(index) ? profile.done.filter((d) => d !== index) : [...profile.done, index]);
   const sc = profile.textScale;
   const hs = profile.headingScale;
-  const font = FONTS[profile.font] ?? FONTS.classic;
+  const font = FONTS[profile.font] ?? { label: "Classic", heading: "inherit", body: "inherit" };
   const [photoError, setPhotoError] = useState("");
   const onPhoto = async (file?: File) => {
     if (!file) return;
