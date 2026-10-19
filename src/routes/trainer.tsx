@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 
 export const Route = createFileRoute("/trainer")({
   head: () => ({
@@ -37,6 +38,7 @@ interface TrainerProfile {
   done: number[];
   textScale: number;
   headingScale: number;
+  photoScale: number;
   font: string;
 }
 
@@ -46,7 +48,7 @@ const schema = z.object({
 });
 
 const empty: TrainerProfile = {
-  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1, headingScale: 1, font: "classic",
+  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1, headingScale: 1, photoScale: 100, font: "classic",
 };
 const FONTS: Record<string, { label: string; heading: string; body: string }> = {
   classic: { label: "Classic", heading: "inherit", body: "inherit" },
@@ -90,7 +92,7 @@ function TrainerPage() {
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1, headingScale: typeof stored.headingScale === "number" ? clampScale(stored.headingScale) : 1, font: typeof stored.font === "string" && stored.font in FONTS ? stored.font : "classic" });
+      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1, headingScale: typeof stored.headingScale === "number" ? clampScale(stored.headingScale) : 1, photoScale: typeof stored.photoScale === "number" ? Math.min(150, Math.max(60, stored.photoScale)) : 100, font: typeof stored.font === "string" && stored.font in FONTS ? stored.font : "classic" });
     } catch { /* start fresh */ }
     setLoaded(true);
   }, []);
@@ -241,6 +243,20 @@ function TrainerPage() {
                           <Button variant="ghost" size="icon" className="size-7 rounded-full" aria-label={`Increase ${label.toLowerCase()} size`} disabled={val >= SCALE_MAX} onClick={() => set(key, clampScale(val + 0.1))}><Plus className="size-3.5" /></Button>
                         </div>
                       ))}
+                      <div className="grid gap-2 rounded-xl border border-border bg-card/70 p-3">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Photo card size</span>
+                          <span className="tabular-nums">{profile.photoScale}%</span>
+                        </div>
+                        <Slider
+                          aria-label="Photo card size"
+                          min={60}
+                          max={150}
+                          step={5}
+                          value={[profile.photoScale]}
+                          onValueChange={([value]) => { if (typeof value === "number") set("photoScale", value); }}
+                        />
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -251,7 +267,7 @@ function TrainerPage() {
               <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-start gap-6 md:flex-row md:items-center">
                 <div className="relative shrink-0">
                   <motion.span aria-hidden className="absolute -inset-2 rounded-[2rem] bg-primary/25 blur-md" animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.04, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="relative grid size-32 place-items-center overflow-hidden rounded-3xl bg-primary text-4xl font-bold text-primary-foreground shadow-soft ring-4 ring-card">
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="relative grid place-items-center overflow-hidden rounded-3xl bg-primary text-4xl font-bold text-primary-foreground shadow-soft ring-4 ring-card" style={{ width: `${8 * profile.photoScale / 100}rem`, height: `${8 * profile.photoScale / 100}rem` }}>
                     {profile.photo ? <img src={profile.photo} alt={profile.name} className="size-full object-cover" /> : initials}
                   </motion.div>
                 </div>
