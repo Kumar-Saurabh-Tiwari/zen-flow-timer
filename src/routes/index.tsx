@@ -17,7 +17,6 @@ import {
   Trash2,
   CalendarClock,
   X,
-  Presentation,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import Timer from "@/components/Timer";
