@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Eye, Plus, Trash2, X, GraduationCap, ListChecks, Sparkles, Check, Camera, Minus, Type, Settings2 } from "lucide-react";
+import { ArrowLeft, Eye, Plus, Trash2, X, GraduationCap, ListChecks, Sparkles, Check, Camera, Minus, Type, Settings2, BookOpen, Clock3, type LucideIcon } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/trainer")({
 const STORAGE_KEY = "timerApp_trainerProfile";
 
 interface CustomField { id: string; label: string; value: string }
+interface ScheduleItem { id: string; time: string; title: string }
 interface TrainerProfile {
   name: string;
   role: string;
@@ -34,12 +35,15 @@ interface TrainerProfile {
   description: string;
   agenda: string[];
   fields: CustomField[];
+  schedule: ScheduleItem[];
   photo: string;
   done: number[];
   textScale: number;
   headingScale: number;
   photoScale: number;
   font: string;
+  layout: string;
+  photoShape: string;
 }
 
 const schema = z.object({
@@ -48,7 +52,7 @@ const schema = z.object({
 });
 
 const empty: TrainerProfile = {
-  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1, headingScale: 1, photoScale: 100, font: "classic",
+  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1, headingScale: 1, photoScale: 100, font: "classic", schedule: [], layout: "tabs", photoShape: "squircle",
 };
 const FONTS: Record<string, { label: string; heading: string; body: string }> = {
   classic: { label: "Classic", heading: "inherit", body: "inherit" },
@@ -59,6 +63,13 @@ const FONTS: Record<string, { label: string; heading: string; body: string }> = 
 };
 const SCALE_MIN = 0.8, SCALE_MAX = 1.5;
 const clampScale = (v: number) => Math.min(SCALE_MAX, Math.max(SCALE_MIN, Math.round(v * 10) / 10));
+
+type TrainerTab = "course" | "schedule" | "agenda";
+const TABS: { id: TrainerTab; label: string; icon: LucideIcon }[] = [
+  { id: "course", label: "Course", icon: BookOpen },
+  { id: "schedule", label: "Class schedule", icon: Clock3 },
+  { id: "agenda", label: "Agenda", icon: ListChecks },
+];
 
 function resizeImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -88,11 +99,12 @@ function TrainerPage() {
   const [preview, setPreview] = useState(false);
   const [previewSettingsOpen, setPreviewSettingsOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tab, setTab] = useState<TrainerTab>("course");
 
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1, headingScale: typeof stored.headingScale === "number" ? clampScale(stored.headingScale) : 1, photoScale: typeof stored.photoScale === "number" ? Math.min(150, Math.max(60, stored.photoScale)) : 100, font: typeof stored.font === "string" && stored.font in FONTS ? stored.font : "classic" });
+      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], schedule: Array.isArray(stored.schedule) ? stored.schedule.filter((s) => s && typeof s.id === "string" && typeof s.time === "string" && typeof s.title === "string") : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1, headingScale: typeof stored.headingScale === "number" ? clampScale(stored.headingScale) : 1, photoScale: typeof stored.photoScale === "number" ? Math.min(150, Math.max(60, stored.photoScale)) : 100, font: typeof stored.font === "string" && stored.font in FONTS ? stored.font : "classic", layout: stored.layout === "stacked" ? "stacked" : "tabs", photoShape: stored.photoShape === "circle" ? "circle" : "squircle" });
     } catch { /* start fresh */ }
     setLoaded(true);
   }, []);
@@ -119,6 +131,7 @@ function TrainerPage() {
       return;
     }
     setErrors({});
+    setTab("course");
     setPreview(true);
   };
 
@@ -137,6 +150,88 @@ function TrainerPage() {
   };
   const fields = profile.fields.filter((f) => f.label.trim() || f.value.trim());
   const initials = profile.name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "IN";
+  const schedule = profile.schedule.filter((s) => s.time.trim() || s.title.trim());
+
+  const courseBody = (
+    <>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Course</p>
+      <h3 className="mt-2 break-words font-semibold leading-tight text-foreground" style={{ fontFamily: font.heading, fontSize: `${2.25 * hs}rem` }}>{profile.course}</h3>
+      <motion.div aria-hidden className="mt-4 h-1 rounded-full bg-gradient-to-r from-primary via-primary/40 to-transparent" initial={{ width: 0 }} animate={{ width: "8rem" }} transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} />
+      {profile.description && <p className="mt-4 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground" style={{ fontSize: `${1.0625 * sc}rem` }}>{profile.description}</p>}
+    </>
+  );
+
+  const scheduleBody = (
+    <>
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Clock3 className="size-4 text-primary" />Class schedule</p>
+      {schedule.length > 0 ? (
+        <ol className="mt-5 space-y-3">
+          {schedule.map((s, i) => (
+            <motion.li key={s.id} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.35 + i * 0.07, ease: "easeOut" }} className="flex items-center gap-4 rounded-2xl bg-muted/50 px-4 py-3">
+              <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1 text-center text-xs font-semibold tabular-nums text-primary" style={{ fontSize: `${0.75 * sc}rem` }}>{s.time.trim() || `Session ${i + 1}`}</span>
+              <span className="min-w-0 break-words font-medium text-foreground" style={{ fontSize: `${1.0625 * sc}rem` }}>{s.title.trim() || "—"}</span>
+            </motion.li>
+          ))}
+        </ol>
+      ) : (
+        <p className="mt-5 text-sm text-muted-foreground">No sessions yet — add them in the form behind this preview.</p>
+      )}
+    </>
+  );
+
+  const agendaBody = (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><ListChecks className="size-4 text-primary" />Agenda</p>
+        {agenda.length > 0 && <span className="text-xs tabular-nums text-muted-foreground">{doneCount}/{agenda.length} done</span>}
+      </div>
+      {agenda.length > 0 ? (
+        <>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+            <motion.div className="h-full rounded-full bg-primary" initial={false} animate={{ width: `${(doneCount / agenda.length) * 100}%` }} transition={{ type: "spring", stiffness: 120, damping: 20 }} />
+          </div>
+          <ol className="mt-5 space-y-2">
+            {agenda.map((a, i) => {
+              const done = profile.done.includes(a.index);
+              return (
+                <motion.li key={a.index} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.5 + i * 0.08, ease: "easeOut" }}>
+                  <button type="button" aria-pressed={done} onClick={() => toggleDone(a.index)} className="group flex w-full items-start gap-4 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <motion.span layout className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold tabular-nums transition-colors duration-300 ${done ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary group-hover:bg-primary/25"}`}>
+                      <AnimatePresence mode="wait" initial={false}>
+                        {done
+                          ? <motion.span key="c" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}><Check className="size-4" /></motion.span>
+                          : <motion.span key="n" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>{i + 1}</motion.span>}
+                      </AnimatePresence>
+                    </motion.span>
+                    <span className="relative pt-1 transition-colors duration-300" style={{ fontSize: `${1.125 * sc}rem` }}>
+                      <span className={done ? "text-muted-foreground" : "text-foreground"}>{a.text}</span>
+                      <motion.span aria-hidden className="absolute left-0 top-1/2 mt-0.5 h-0.5 rounded-full bg-muted-foreground/70" initial={false} animate={{ width: done ? "100%" : "0%" }} transition={{ duration: 0.35, ease: "easeOut" }} />
+                    </span>
+                  </button>
+                </motion.li>
+              );
+            })}
+          </ol>
+        </>
+      ) : (
+        <p className="mt-5 text-sm text-muted-foreground">No agenda items yet — add them in the form behind this preview.</p>
+      )}
+    </>
+  );
+
+  const detailsBody = fields.length > 0 ? (
+    <>
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="size-4 text-primary" />Details</p>
+      <dl className="mt-5 divide-y divide-border">
+        {fields.map((f, i) => (
+          <motion.div key={f.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + i * 0.06 }} className="flex flex-wrap justify-between gap-2 py-3">
+            <dt className="text-muted-foreground" style={{ fontSize: `${0.875 * sc}rem` }}>{f.label}</dt>
+            <dd className="text-right font-medium text-foreground" style={{ fontSize: `${1 * sc}rem` }}>{f.value}</dd>
+          </motion.div>
+        ))}
+      </dl>
+    </>
+  ) : null;
 
   return (
     <main className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:py-14">
@@ -166,6 +261,19 @@ function TrainerPage() {
           </div>
           <div className="grid gap-2"><Label htmlFor="tr-course">Course name</Label><Input id="tr-course" value={profile.course} maxLength={120} onChange={(e) => set("course", e.target.value)} placeholder="Red Hat System Administration I" />{errors["course"] && <p className="text-xs text-destructive">{errors["course"]}</p>}</div>
           <div className="grid gap-2"><Label htmlFor="tr-desc">Description</Label><Textarea id="tr-desc" rows={4} value={profile.description} maxLength={1000} onChange={(e) => set("description", e.target.value)} placeholder="What learners will achieve in this course…" /></div>
+
+          <div className="grid gap-2 border-t border-border pt-5">
+            <Label>Class schedule</Label>
+            <p className="text-xs text-muted-foreground">Each session — day or time on the left, what happens on the right.</p>
+            {profile.schedule.map((s) => (
+              <div key={s.id} className="grid grid-cols-[1fr_1.5fr_auto] gap-2">
+                <Input aria-label="Session time or day" value={s.time} maxLength={40} placeholder="Day 1 · 10:00 AM" onChange={(e) => set("schedule", profile.schedule.map((x) => x.id === s.id ? { ...x, time: e.target.value } : x))} />
+                <Input aria-label="Session title" value={s.title} maxLength={120} placeholder="What happens in this session" onChange={(e) => set("schedule", profile.schedule.map((x) => x.id === s.id ? { ...x, title: e.target.value } : x))} />
+                <Button variant="ghost" size="icon" aria-label="Remove session" onClick={() => set("schedule", profile.schedule.filter((x) => x.id !== s.id))}><Trash2 /></Button>
+              </div>
+            ))}
+            <Button variant="outline" size="sm" className="w-fit" onClick={() => set("schedule", [...profile.schedule, { id: uid(), time: "", title: "" }])}><Plus className="size-4" />Add session</Button>
+          </div>
 
           <div className="grid gap-2">
             <Label>Agenda</Label>
@@ -257,6 +365,20 @@ function TrainerPage() {
                           onValueChange={([value]) => { if (typeof value === "number") set("photoScale", value); }}
                         />
                       </div>
+                      <div className="grid gap-1.5 rounded-xl border border-border bg-card/70 p-3">
+                        <span className="text-xs text-muted-foreground">Section layout</span>
+                        <div className="flex gap-1 rounded-full bg-muted/60 p-1" role="group" aria-label="Section layout">
+                          {([["tabs", "Tabs"], ["stacked", "Cards"]] as const).map(([value, label]) => (
+                            <button key={value} type="button" aria-pressed={profile.layout === value} onClick={() => set("layout", value)} className={`flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-300 ${profile.layout === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{label}</button>
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">Photo shape</span>
+                        <div className="flex gap-1 rounded-full bg-muted/60 p-1" role="group" aria-label="Photo shape">
+                          {([["squircle", "Squircle"], ["circle", "Circle"]] as const).map(([value, label]) => (
+                            <button key={value} type="button" aria-pressed={profile.photoShape === value} onClick={() => set("photoShape", value)} className={`flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-300 ${profile.photoShape === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{label}</button>
+                          ))}
+                        </div>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -266,15 +388,15 @@ function TrainerPage() {
             <div className="relative mx-auto flex min-h-full w-full flex-col justify-center gap-10 px-8 pb-16 pt-28 sm:px-12 lg:px-16" style={{ fontFamily: font.body }}>
               <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-start gap-6 md:flex-row md:items-center">
                 <div className="relative shrink-0">
-                  <motion.span aria-hidden className="absolute -inset-2 rounded-[2rem] bg-primary/25 blur-md" animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.04, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="relative grid place-items-center overflow-hidden rounded-3xl bg-primary text-4xl font-bold text-primary-foreground shadow-soft ring-4 ring-card" style={{ width: `${8 * profile.photoScale / 100}rem`, height: `${8 * profile.photoScale / 100}rem` }}>
+                  <motion.span aria-hidden className={`absolute -inset-2 bg-primary/25 blur-md ${profile.photoShape === "circle" ? "rounded-full" : "rounded-[2rem]"}`} animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.04, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className={`relative grid place-items-center overflow-hidden bg-primary text-4xl font-bold text-primary-foreground shadow-soft ring-4 ring-card ${profile.photoShape === "circle" ? "rounded-full" : "rounded-3xl"}`} style={{ width: `${8 * profile.photoScale / 100}rem`, height: `${8 * profile.photoScale / 100}rem` }}>
                     {profile.photo ? <img src={profile.photo} alt={profile.name} className="size-full object-cover" /> : initials}
                   </motion.div>
                 </div>
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-primary" /></span><GraduationCap className="size-4" />Your instructor</p>
-                  <motion.h2 layout className="trainer-shine mt-2 break-words font-bold leading-[1.05] tracking-tight" style={{ fontFamily: font.heading, fontSize: `clamp(2.25rem, ${4 * hs}vw, ${4.5 * hs}rem)` }}>{profile.name}</motion.h2>
-                  {profile.role && <p className="mt-2 text-muted-foreground" style={{ fontSize: `${1.125 * sc}rem` }}>{profile.role}</p>}
+                <div className="flex min-w-0 flex-col">
+                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-primary" /></span><GraduationCap className="size-4" />Instructor</p>
+                  <motion.h2 layout className="trainer-shine break-words font-bold leading-[1.05] tracking-tight" style={{ fontFamily: font.heading, fontSize: `clamp(2.25rem, ${4 * hs}vw, ${4.5 * hs}rem)` }}>{profile.name}</motion.h2>
+                  {profile.role && <p className="mt-1 text-muted-foreground" style={{ fontSize: `${1.125 * sc}rem` }}>{profile.role}</p>}
                 </div>
               </motion.div>
 
