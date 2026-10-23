@@ -36,6 +36,7 @@ interface TrainerProfile {
   agenda: string[];
   fields: CustomField[];
   schedule: ScheduleItem[];
+  scheduleDone: string[];
   photo: string;
   done: number[];
   textScale: number;
@@ -52,7 +53,7 @@ const schema = z.object({
 });
 
 const empty: TrainerProfile = {
-  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1, headingScale: 1, photoScale: 100, font: "classic", schedule: [], layout: "tabs", photoShape: "squircle",
+  name: "", role: "", course: "", description: "", agenda: [""], fields: [], photo: "", done: [], textScale: 1, headingScale: 1, photoScale: 100, font: "classic", schedule: [], scheduleDone: [], layout: "tabs", photoShape: "squircle",
 };
 const FONTS: Record<string, { label: string; heading: string; body: string }> = {
   classic: { label: "Classic", heading: "inherit", body: "inherit" },
@@ -104,7 +105,7 @@ function TrainerPage() {
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], schedule: Array.isArray(stored.schedule) ? stored.schedule.filter((s) => s && typeof s.id === "string" && typeof s.time === "string" && typeof s.title === "string") : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1, headingScale: typeof stored.headingScale === "number" ? clampScale(stored.headingScale) : 1, photoScale: typeof stored.photoScale === "number" ? Math.min(150, Math.max(60, stored.photoScale)) : 100, font: typeof stored.font === "string" && stored.font in FONTS ? stored.font : "classic", layout: stored.layout === "stacked" ? "stacked" : "tabs", photoShape: stored.photoShape === "circle" ? "circle" : "squircle" });
+      if (stored && typeof stored === "object") setProfile({ ...empty, ...stored, agenda: Array.isArray(stored.agenda) && stored.agenda.length ? stored.agenda : [""], fields: Array.isArray(stored.fields) ? stored.fields : [], schedule: Array.isArray(stored.schedule) ? stored.schedule.filter((s) => s && typeof s.id === "string" && typeof s.time === "string" && typeof s.title === "string") : [], scheduleDone: Array.isArray(stored.scheduleDone) ? stored.scheduleDone.filter((id): id is string => typeof id === "string") : [], done: Array.isArray(stored.done) ? stored.done : [], photo: typeof stored.photo === "string" ? stored.photo : "", textScale: typeof stored.textScale === "number" ? clampScale(stored.textScale) : 1, headingScale: typeof stored.headingScale === "number" ? clampScale(stored.headingScale) : 1, photoScale: typeof stored.photoScale === "number" ? Math.min(150, Math.max(60, stored.photoScale)) : 100, font: typeof stored.font === "string" && stored.font in FONTS ? stored.font : "classic", layout: stored.layout === "stacked" ? "stacked" : "tabs", photoShape: stored.photoShape === "circle" ? "circle" : "squircle" });
     } catch { /* start fresh */ }
     setLoaded(true);
   }, []);
@@ -123,6 +124,7 @@ function TrainerPage() {
   }, [preview]);
 
   const set = <K extends keyof TrainerProfile>(k: K, v: TrainerProfile[K]) => setProfile((p) => ({ ...p, [k]: v }));
+  const toggleScheduleDone = (id: string) => set("scheduleDone", profile.scheduleDone.includes(id) ? profile.scheduleDone.filter((doneId) => doneId !== id) : [...profile.scheduleDone, id]);
 
   const openPreview = () => {
     const result = schema.safeParse(profile);
@@ -163,15 +165,39 @@ function TrainerPage() {
 
   const scheduleBody = (
     <>
-      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Clock3 className="size-4 text-primary" />Class schedule</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Clock3 className="size-4 text-primary" />Class schedule</p>
+        {schedule.length > 0 && <span className="text-xs tabular-nums text-muted-foreground">{schedule.filter((item) => profile.scheduleDone.includes(item.id)).length}/{schedule.length} done</span>}
+      </div>
       {schedule.length > 0 ? (
         <ol className="mt-5 space-y-3">
-          {schedule.map((s, i) => (
-            <motion.li key={s.id} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.35 + i * 0.07, ease: "easeOut" }} className="flex items-center gap-4 rounded-2xl bg-muted/50 px-4 py-3">
-              <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1 text-center text-xs font-semibold tabular-nums text-primary" style={{ fontSize: `${0.75 * sc}rem` }}>{s.time.trim() || `Session ${i + 1}`}</span>
-              <span className="min-w-0 break-words font-medium text-foreground" style={{ fontSize: `${1.0625 * sc}rem` }}>{s.title.trim() || "—"}</span>
-            </motion.li>
-          ))}
+          {schedule.map((s, i) => {
+            const done = profile.scheduleDone.includes(s.id);
+            return (
+              <motion.li key={s.id} layout initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.35 + i * 0.07, ease: "easeOut" }} className="flex items-center gap-4 rounded-2xl bg-muted/50 px-4 py-3">
+                <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1 text-center text-xs font-semibold tabular-nums text-primary" style={{ fontSize: `${0.75 * sc}rem` }}>{s.time.trim() || `Session ${i + 1}`}</span>
+                <span className={`min-w-0 flex-1 break-words font-medium transition-colors duration-300 ${done ? "text-muted-foreground" : "text-foreground"}`} style={{ fontSize: `${1.0625 * sc}rem` }}>
+                  <span className="relative">
+                    {s.title.trim() || "—"}
+                    <motion.span aria-hidden className="absolute left-0 top-1/2 h-0.5 rounded-full bg-muted-foreground/70" initial={false} animate={{ width: done ? "100%" : "0%" }} transition={{ duration: 0.35, ease: "easeOut" }} />
+                  </span>
+                </span>
+                <motion.button
+                  type="button"
+                  role="checkbox"
+                  aria-label={`${s.title.trim() || `Session ${i + 1}`} complete`}
+                  aria-checked={done}
+                  onClick={() => toggleScheduleDone(s.id)}
+                  whileTap={{ scale: 0.88 }}
+                  className={`grid size-8 shrink-0 place-items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${done ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-transparent hover:border-primary/60"}`}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {done && <motion.span key="check" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 45 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}><Check className="size-4" /></motion.span>}
+                  </AnimatePresence>
+                </motion.button>
+              </motion.li>
+            );
+          })}
         </ol>
       ) : (
         <p className="mt-5 text-sm text-muted-foreground">No sessions yet — add them in the form behind this preview.</p>
@@ -269,7 +295,7 @@ function TrainerPage() {
               <div key={s.id} className="grid grid-cols-[1fr_1.5fr_auto] gap-2">
                 <Input aria-label="Session time or day" value={s.time} maxLength={40} placeholder="Day 1 · 10:00 AM" onChange={(e) => set("schedule", profile.schedule.map((x) => x.id === s.id ? { ...x, time: e.target.value } : x))} />
                 <Input aria-label="Session title" value={s.title} maxLength={120} placeholder="What happens in this session" onChange={(e) => set("schedule", profile.schedule.map((x) => x.id === s.id ? { ...x, title: e.target.value } : x))} />
-                <Button variant="ghost" size="icon" aria-label="Remove session" onClick={() => set("schedule", profile.schedule.filter((x) => x.id !== s.id))}><Trash2 /></Button>
+                <Button variant="ghost" size="icon" aria-label="Remove session" onClick={() => setProfile((p) => ({ ...p, schedule: p.schedule.filter((x) => x.id !== s.id), scheduleDone: p.scheduleDone.filter((id) => id !== s.id) }))}><Trash2 /></Button>
               </div>
             ))}
             <Button variant="outline" size="sm" className="w-fit" onClick={() => set("schedule", [...profile.schedule, { id: uid(), time: "", title: "" }])}><Plus className="size-4" />Add session</Button>
@@ -385,7 +411,7 @@ function TrainerPage() {
               </div>
               <Button variant="outline" size="sm" className="rounded-full bg-card/70 backdrop-blur" onClick={() => { setPreview(false); setPreviewSettingsOpen(false); }}><X className="size-4" />Close</Button>
             </div>
-            <div className="relative mx-auto flex min-h-full w-full flex-col justify-center gap-10 px-8 pb-16 pt-28 sm:px-12 lg:px-16" style={{ fontFamily: font.body }}>
+            <div className="relative mx-auto flex min-h-full w-full flex-col justify-center gap-10 px-8 pb-16 pt-20 sm:px-12 lg:px-16" style={{ fontFamily: font.body }}>
               <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-start gap-6 md:flex-row md:items-center">
                 <div className="relative shrink-0">
                   <motion.span aria-hidden className={`absolute -inset-2 bg-primary/25 blur-md ${profile.photoShape === "circle" ? "rounded-full" : "rounded-[2rem]"}`} animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.04, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
@@ -400,48 +426,20 @@ function TrainerPage() {
                 </div>
               </motion.div>
 
-              <div className={`grid items-stretch gap-6 ${agenda.length > 0 ? "lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]" : ""}`}>
+              <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
                 <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Course</p>
-                  <h3 className="mt-2 break-words font-semibold leading-tight text-foreground" style={{ fontFamily: font.heading, fontSize: `${2.25 * hs}rem` }}>{profile.course}</h3>
-                  <motion.div aria-hidden className="mt-4 h-1 rounded-full bg-gradient-to-r from-primary via-primary/40 to-transparent" initial={{ width: 0 }} animate={{ width: "8rem" }} transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} />
-                  {profile.description && <p className="mt-4 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground" style={{ fontSize: `${1.0625 * sc}rem` }}>{profile.description}</p>}
+                  {courseBody}
                 </motion.div>
 
-                {agenda.length > 0 && (
-                  <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-6 shadow-soft backdrop-blur">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><ListChecks className="size-4 text-primary" />Agenda</p>
-                      <span className="text-xs tabular-nums text-muted-foreground">{doneCount}/{agenda.length} done</span>
-                    </div>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
-                      <motion.div className="h-full rounded-full bg-primary" initial={false} animate={{ width: `${(doneCount / agenda.length) * 100}%` }} transition={{ type: "spring", stiffness: 120, damping: 20 }} />
-                    </div>
-                    <ol className="mt-5 space-y-2">
-                      {agenda.map((a, i) => {
-                        const done = profile.done.includes(a.index);
-                        return (
-                          <motion.li key={a.index} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.5 + i * 0.08, ease: "easeOut" }}>
-                            <button type="button" aria-pressed={done} onClick={() => toggleDone(a.index)} className="group flex w-full items-start gap-4 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                              <motion.span layout className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold tabular-nums transition-colors duration-300 ${done ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary group-hover:bg-primary/25"}`}>
-                                <AnimatePresence mode="wait" initial={false}>
-                                  {done
-                                    ? <motion.span key="c" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}><Check className="size-4" /></motion.span>
-                                    : <motion.span key="n" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>{i + 1}</motion.span>}
-                                </AnimatePresence>
-                              </motion.span>
-                              <span className="relative pt-1 transition-colors duration-300" style={{ fontSize: `${1.125 * sc}rem` }}>
-                                <span className={done ? "text-muted-foreground" : "text-foreground"}>{a.text}</span>
-                                <motion.span aria-hidden className="absolute left-0 top-1/2 mt-0.5 h-0.5 rounded-full bg-muted-foreground/70" initial={false} animate={{ width: done ? "100%" : "0%" }} transition={{ duration: 0.35, ease: "easeOut" }} />
-                              </span>
-                            </button>
-                          </motion.li>
-                        );
-                      })}
-                    </ol>
-                  </motion.div>
-                )}
+                <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-6 shadow-soft backdrop-blur">
+                  {scheduleBody}
+                </motion.div>
               </div>
+              {agenda.length > 0 && (
+                <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card w-full rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
+                  {agendaBody}
+                </motion.div>
+              )}
               {fields.length > 0 && (
                 <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
                   <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="size-4 text-primary" />Details</p>
