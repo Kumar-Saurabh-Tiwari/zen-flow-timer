@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import LiveClock from "@/components/LiveClock";
 
 export const Route = createFileRoute("/trainer")({
   head: () => ({
@@ -101,6 +102,7 @@ function TrainerPage() {
   const [previewSettingsOpen, setPreviewSettingsOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<TrainerTab>("course");
+  const [userTimezone, setUserTimezone] = useState("UTC");
 
   useEffect(() => {
     try {
@@ -341,6 +343,9 @@ function TrainerPage() {
               <motion.div className="absolute -right-20 bottom-0 size-[28rem] rounded-full bg-accent/40 blur-3xl" animate={{ x: [0, -30, 0], y: [0, -40, 0] }} transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }} />
             </div>
             <div className="fixed right-5 top-5 z-10 flex items-center gap-2">
+              <div className="min-w-0 max-w-full">
+                <LiveClock timezone={userTimezone} />
+              </div>
               <div className="relative">
                 <Button
                   variant="outline"
@@ -426,20 +431,52 @@ function TrainerPage() {
                 </div>
               </motion.div>
 
-              <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
-                <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
-                  {courseBody}
-                </motion.div>
+              <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)]">
+                {/* Left column: Course + Agenda */}
+                <div className="flex min-w-0 flex-col gap-5">
+                  <motion.div
+                    initial={{ y: 24, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{
+                      delay: 0.25,
+                      duration: 0.6,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur"
+                  >
+                    {courseBody}
+                  </motion.div>
 
-                <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-6 shadow-soft backdrop-blur">
+                  {agenda.length > 0 && (
+                    <motion.div
+                      initial={{ y: 24, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{
+                        delay: 0.5,
+                        duration: 0.6,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      className="trainer-card w-full rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur"
+                    >
+                      {agendaBody}
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Right column: Class Schedule */}
+                <motion.div
+                  initial={{ y: 24, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{
+                    delay: 0.4,
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="trainer-card rounded-3xl border border-border bg-card/80 p-6 shadow-soft backdrop-blur"
+                >
                   {scheduleBody}
                 </motion.div>
               </div>
-              {agenda.length > 0 && (
-                <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card w-full rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
-                  {agendaBody}
-                </motion.div>
-              )}
               {fields.length > 0 && (
                 <motion.div initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="trainer-card rounded-3xl border border-border bg-card/80 p-8 shadow-soft backdrop-blur">
                   <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="size-4 text-primary" />Details</p>
