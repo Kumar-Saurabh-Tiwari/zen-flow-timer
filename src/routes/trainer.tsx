@@ -102,8 +102,16 @@ function TrainerPage() {
   const [previewSettingsOpen, setPreviewSettingsOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<TrainerTab>("course");
-  const [userTimezone, setUserTimezone] = useState("UTC");
+  const [userTimezone, setUserTimezone] = useState<string>(() => {
+    if (typeof window === "undefined") {
+      return "UTC";
+    }
 
+    return (
+      JSON.parse(localStorage.getItem("timerApp_userTimezone") || " ") ||
+      "UTC"
+    );
+  });
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
