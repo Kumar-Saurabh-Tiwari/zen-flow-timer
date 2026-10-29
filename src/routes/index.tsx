@@ -494,7 +494,7 @@ function Index() {
               </motion.div>
 
               <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-              <Link to="/trainer" aria-label="Open instructor showcase" title="Open instructor showcase" className="group w-fit rounded-full border border-border/70 bg-card/60 px-3 py-1 font-serif text-[13px] italic tracking-[0.1em] text-foreground/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card/85 hover:text-primary hover:tracking-[0.15em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none">
+              <Link to="/trainer" target="_blank" rel="noopener noreferrer" aria-label="Open instructor showcase" title="Open instructor showcase" className="group w-fit rounded-full border border-border/70 bg-card/60 px-3 py-1 font-serif text-[13px] italic tracking-[0.1em] text-foreground/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card/85 hover:text-primary hover:tracking-[0.15em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none">
                 Instructor <span className="font-semibold not-italic text-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none">{instructorName}</span>
               </Link>
               </div>
