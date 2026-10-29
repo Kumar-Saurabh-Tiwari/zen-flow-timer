@@ -183,15 +183,56 @@ function TrainerPage() {
         <ol className="mt-5 space-y-3">
           {schedule.map((s, i) => {
             const done = profile.scheduleDone.includes(s.id);
+
             return (
-              <motion.li key={s.id} layout initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.35 + i * 0.07, ease: "easeOut" }} className="flex items-center gap-4 rounded-2xl bg-muted/50 px-4 py-3">
-                <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1 text-center text-xs font-semibold tabular-nums text-primary" style={{ fontSize: `${0.75 * sc}rem` }}>{s.time.trim() || `Session ${i + 1}`}</span>
-                <span className={`min-w-0 flex-1 break-words font-medium transition-colors duration-300 ${done ? "text-muted-foreground" : "text-foreground"}`} style={{ fontSize: `${1.0625 * sc}rem` }}>
-                  <span className="relative">
-                    {s.title.trim() || "—"}
-                    <motion.span aria-hidden className="absolute left-0 top-1/2 h-0.5 rounded-full bg-muted-foreground/70" initial={false} animate={{ width: done ? "100%" : "0%" }} transition={{ duration: 0.35, ease: "easeOut" }} />
-                  </span>
+              <motion.li
+                key={s.id}
+                layout
+                initial={{ x: -16, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.35 + i * 0.07, ease: "easeOut" }}
+                className="flex items-center gap-4 rounded-2xl bg-muted/50 px-4 py-3"
+              >
+                <span
+                  className="shrink-0 rounded-full bg-primary/15 px-3 py-1 text-center text-xs font-semibold tabular-nums text-primary"
+                  style={{ fontSize: `${0.75 * sc}rem` }}
+                >
+                  {s.time.trim() || `Session ${i + 1}`}
                 </span>
+
+                <span
+                  className="min-w-0 flex-1 break-words font-medium"
+                  style={{ fontSize: `${1.0625 * sc}rem` }}
+                >
+                  <motion.span
+                    animate={{
+                      backgroundColor: done
+                        ? "rgb(254 226 226)"
+                        : "rgba(0, 0, 0, 0)",
+                    }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    className="relative inline rounded-md px-2 py-1"
+                  >
+                    <span
+                      className={
+                        done ? "text-red-600" : "text-foreground"
+                      }
+                    >
+                      {s.title.trim() || "—"}
+                    </span>
+
+                    <motion.span
+                      aria-hidden
+                      className="absolute left-2 top-1/2 mt-0.5 h-0.5 rounded-full bg-red-400"
+                      initial={false}
+                      animate={{
+                        width: done ? "calc(100% - 1rem)" : "0%",
+                      }}
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                    />
+                  </motion.span>
+                </span>
+
                 <motion.button
                   type="button"
                   role="checkbox"
@@ -199,10 +240,27 @@ function TrainerPage() {
                   aria-checked={done}
                   onClick={() => toggleScheduleDone(s.id)}
                   whileTap={{ scale: 0.88 }}
-                  className={`grid size-8 shrink-0 place-items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${done ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-transparent hover:border-primary/60"}`}
+                  className={`grid size-8 shrink-0 place-items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${done
+                      ? "border-red-200 bg-red-100 text-red-600 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300"
+                      : "border-green-200 bg-green-100 text-green-700 hover:border-green-300 dark:border-green-900 dark:bg-green-950/50 dark:text-green-300"
+                    }`}
                 >
                   <AnimatePresence mode="wait" initial={false}>
-                    {done && <motion.span key="check" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 45 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}><Check className="size-4" /></motion.span>}
+                    {done && (
+                      <motion.span
+                        key="check"
+                        initial={{ scale: 0, rotate: -45 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        exit={{ scale: 0, rotate: 45 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 18,
+                        }}
+                      >
+                        <Check className="size-4" />
+                      </motion.span>
+                    )}
                   </AnimatePresence>
                 </motion.button>
               </motion.li>
@@ -229,19 +287,76 @@ function TrainerPage() {
           <ol className="mt-5 space-y-2">
             {agenda.map((a, i) => {
               const done = profile.done.includes(a.index);
+
               return (
-                <motion.li key={a.index} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.5 + i * 0.08, ease: "easeOut" }}>
-                  <button type="button" aria-pressed={done} onClick={() => toggleDone(a.index)} className="group flex w-full items-start gap-4 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <motion.span layout className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold tabular-nums transition-colors duration-300 ${done ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary group-hover:bg-primary/25"}`}>
+                <motion.li
+                  key={a.index}
+                  initial={{ x: -16, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{
+                    delay: 0.5 + i * 0.08,
+                    ease: "easeOut",
+                  }}
+                >
+                  <button
+                    type="button"
+                    aria-pressed={done}
+                    onClick={() => toggleDone(a.index)}
+                    className="group flex w-full items-start gap-4 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <motion.span
+                      layout
+                      className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold tabular-nums transition-colors duration-300 ${done
+                        ? "bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-300"
+                        : "bg-green-100 text-green-700 group-hover:bg-green-200 dark:bg-green-950/50 dark:text-green-300 dark:group-hover:bg-green-900/60"
+                        }`}
+                    >
                       <AnimatePresence mode="wait" initial={false}>
-                        {done
-                          ? <motion.span key="c" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}><Check className="size-4" /></motion.span>
-                          : <motion.span key="n" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>{i + 1}</motion.span>}
+                        {done ? (
+                          <motion.span
+                            key="c"
+                            initial={{ scale: 0, rotate: -45 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 18,
+                            }}
+                          >
+                            <Check className="size-4" />
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            key="n"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0 }}
+                          >
+                            {i + 1}
+                          </motion.span>
+                        )}
                       </AnimatePresence>
                     </motion.span>
-                    <span className="relative pt-1 transition-colors duration-300" style={{ fontSize: `${1.125 * sc}rem` }}>
-                      <span className={done ? "text-muted-foreground" : "text-foreground"}>{a.text}</span>
-                      <motion.span aria-hidden className="absolute left-0 top-1/2 mt-0.5 h-0.5 rounded-full bg-muted-foreground/70" initial={false} animate={{ width: done ? "100%" : "0%" }} transition={{ duration: 0.35, ease: "easeOut" }} />
+
+                    <span
+                      className="relative rounded-md px-2 py-1 transition-colors duration-500 ease-in-out"
+                      style={{
+                        fontSize: `${1.125 * sc}rem`,
+                        backgroundColor: done ? "rgb(254 226 226)" : "transparent",
+                      }}
+                    >
+                      <span className={done ? "text-red-600" : "text-foreground"}>
+                        {a.text}
+                      </span>
+
+                      <motion.span
+                        aria-hidden
+                        className="absolute left-2 top-1/2 mt-0.5 h-0.5 rounded-full bg-red-400"
+                        initial={false}
+                        animate={{ width: done ? "calc(100% - 1rem)" : "0%" }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                      />
                     </span>
                   </button>
                 </motion.li>
